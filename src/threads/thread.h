@@ -111,6 +111,9 @@ struct thread
 
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
+
+    int exit_status;
+    struct semaphore load; //init to 0
   };
 
 /* If false (default), use round-robin scheduler.

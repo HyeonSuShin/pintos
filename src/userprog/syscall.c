@@ -27,20 +27,23 @@ void sys_halt (void)
 
 void sys_exit(int status)
 {
-  // have to add 'status' to thread structure
-  //thread_current()->status = status;
-
+  thread_current()->exit_status = status;
   printf("%s: exit(%d)\n", thread_current()->name, status);
+  process_exit();
   thread_exit();
 }
 
 pid_t sys_exec(const char *cmd_line)
 {
-  char *args;
   pid_t pid;
-  // function parsing cmd_line
-  
-  // thread_create(args[])
+  struct thread *child;
+
+  pid = process_execute(cmd_line);
+  if (pid == -1)
+    return -1;
+  // have to implement
+  //child = thread_get_child(pid);
+  sema_down(&child->load);
 
   return pid;
 }
