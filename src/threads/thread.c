@@ -765,3 +765,16 @@ void donate_priority(struct thread* donor, struct thread* donee){
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+struct thread *thread_get_child(tid_t child_tid)
+{
+  struct list_elem *e;
+  struct thread *th;
+  for (e = list_begin (child_list); e != list_end (child_list); e = list_next (e))
+  {
+    th = list_entry(e, struct thread, child_elem);
+    if(th->tid == child_tid)
+      return th;
+  }
+  return NULL;
+}

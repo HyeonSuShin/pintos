@@ -41,9 +41,12 @@ pid_t sys_exec(const char *cmd_line)
   pid = process_execute(cmd_line);
   if (pid == -1)
     return -1;
-  // have to implement
-  //child = thread_get_child(pid);
-  sema_down(&child->load);
+  
+  child = thread_get_child(pid);
+  if (!child)
+    return -1;
+  
+  sema_down(child->load);
 
   return pid;
 }

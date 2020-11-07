@@ -113,6 +113,8 @@ struct thread
     unsigned magic;                     /* Detects stack overflow. */
 
     int exit_status;
+    struct list child_list;
+    struct list_elem child_elem;
     struct semaphore load; //init to 0
   };
 
@@ -160,4 +162,6 @@ bool donor_greater_func(struct list_elem *a, struct list_elem *b, void *aux UNUS
 void donate_priority(struct thread* donor, struct thread* donee);
 void set_mlfqs_recent_cpu(struct thread *t);
 void set_mlfqs_priority(struct thread *t);
+
+struct thread *thread_get_child(tid_t);
 #endif /* threads/thread.h */
