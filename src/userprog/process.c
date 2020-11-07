@@ -86,9 +86,19 @@ start_process (void *file_name_)
    This function will be implemented in problem 2-2.  For now, it
    does nothing. */
 int
-process_wait (tid_t child_tid UNUSED) 
+process_wait (tid_t child_tid) 
 {
-  return -1;
+  struct thread *parent;
+  struct thread *child;
+  // add 'child_list' to thread structure
+  // add 'thread_get_child' function to thread.c
+  if (!(child = thread_get_child(child_tid)))
+    return -1;
+  
+  sema_down(parent->wait); // add 'wait' semaphore to thread structures  
+  list_remove(child->child_elem); // add 'child_elem'
+
+  return child->status;
 }
 
 /* Free the current process's resources. */
