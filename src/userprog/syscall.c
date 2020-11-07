@@ -24,3 +24,12 @@ void sys_halt (void)
 {
   shutdown_power_off();
 }
+
+void sys_exit(int status)
+{
+  // have to add 'status' to thread structure
+  //thread_current()->status = status;
+
+  printf("%s: exit(%d)\n", thread_current()->name, status);
+  thread_exit();
+}
