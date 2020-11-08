@@ -189,6 +189,11 @@ thread_create (const char *name, int priority,
   if (t == NULL)
     return TID_ERROR;
 
+  /* Allocate file descriptor */
+  t->fd_table = palloc_get_multiple (PAL_ZERO, 2);
+  if (t->fd_table == NULL)
+    return TID_ERROR;
+
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
@@ -611,6 +616,12 @@ init_thread (struct thread *t, const char *name, int priority)
   t->original_priority = priority;
   list_init(&t->donor_thread_list);
   t->magic = THREAD_MAGIC;
+
+  parent = thread_current();
+  list_init(&t->child_list);
+  sema_init(t->load, 0);
+  sema_init(t->wait, 0);
+  t->next_fd = 2;
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
