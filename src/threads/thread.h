@@ -115,7 +115,8 @@ struct thread
     int exit_status;
     struct list child_list;
     struct list_elem child_elem;
-    struct semaphore load; //init to 0
+    struct semaphore *load; //init to 0
+    struct semaphore *wait; //init to 0
   };
 
 /* If false (default), use round-robin scheduler.

@@ -93,8 +93,8 @@ process_wait (tid_t child_tid)
   if (!(child = thread_get_child(child_tid)))
     return -1;
   
-  //sema_down(parent->wait); // add 'wait' semaphore to thread structures  
-  list_remove(&child->child_elem); // add 'child_elem'
+  sema_down(parent->wait);
+  list_remove(&child->child_elem);
 
   return child->status;
 }

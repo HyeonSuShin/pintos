@@ -770,6 +770,7 @@ struct thread *thread_get_child(tid_t child_tid)
 {
   struct list_elem *e;
   struct thread *th;
+  struct list *child_list = &thread_current()->child_list;
   for (e = list_begin (child_list); e != list_end (child_list); e = list_next (e))
   {
     th = list_entry(e, struct thread, child_elem);
