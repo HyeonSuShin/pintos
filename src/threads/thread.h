@@ -113,10 +113,13 @@ struct thread
     unsigned magic;                     /* Detects stack overflow. */
 
     int exit_status;
+    struct thread *parent;
     struct list child_list;
     struct list_elem child_elem;
     struct semaphore *load; //init to 0
     struct semaphore *wait; //init to 0
+    struct file **fd_table; //init when create (allocate memory), close all when process exit
+    int next_fd; // init to 2
   };
 
 /* If false (default), use round-robin scheduler.
