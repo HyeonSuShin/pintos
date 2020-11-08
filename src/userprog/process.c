@@ -122,6 +122,7 @@ process_exit (void)
       pagedir_activate (NULL);
       pagedir_destroy (pd);
     }
+  sema_up(cur->parent->wait);
 }
 
 /* Sets up the CPU for running user code in the current
