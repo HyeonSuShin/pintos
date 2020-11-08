@@ -5,8 +5,10 @@
 #include "threads/thread.h"
 #include "devices/shutdown.h"
 #include "filesys/filesys.h"
+#include "userprog/process.h"
 
 static void syscall_handler (struct intr_frame *);
+struct lock *file_lock;
 
 void
 syscall_init (void) 
@@ -70,13 +72,17 @@ bool sys_remove (const char *file)
 
 int sys_open (const char *file)
 {
-  struct file *file;
+  struct file *file_ptr;
   int fd;
+
+  lock_acquire(file_lock);
   
-  file = filesys_open(file);
-  if (!file)
+  file_ptr = filesys_open(file);
+  if (!file_ptr)
     return -1;
-  fd = add_file(file);
+  fd = add_file(file_ptr);
+
+  lock_release(file_lock);
 
   return fd;
 }

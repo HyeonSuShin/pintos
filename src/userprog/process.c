@@ -141,7 +141,7 @@ process_activate (void)
   tss_update ();
 }
 
-int add_file(const char *file)
+int add_file(struct file *file)
 {
   struct thread *cur = thread_current();
   int fd = cur->next_fd;
