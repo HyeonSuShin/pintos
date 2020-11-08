@@ -83,6 +83,7 @@ void argument_stack(char **argv, int argc, void **esp){
     cmd_length += strlen(argv[i]);
     *esp -= len + 1;
     strlcpy(*esp, argv[i], len + 1);
+    **(uint32_t **)esp = 0;
     argv[i] = *esp;
   }
   *esp -= ((uint32_t)*esp) % 4;
