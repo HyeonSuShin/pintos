@@ -1,11 +1,12 @@
 #include "userprog/syscall.h"
 #include <stdio.h>
 #include <syscall-nr.h>
+#include "userprog/process.h"
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "devices/shutdown.h"
+#include "devices/input.h"
 #include "filesys/filesys.h"
-#include "userprog/process.h"
 
 static void syscall_handler (struct intr_frame *);
 struct lock *file_lock;
@@ -85,4 +86,105 @@ int sys_open (const char *file)
   lock_release(file_lock);
 
   return fd;
+}
+
+int sys_filesize (int fd)
+{
+  struct thread *cur = thread_current();
+  struct file *file = cur->fd_table[fd];
+
+  // if file doesn't exist, return -1
+  if (!file)
+    return -1;
+  
+  // return file size
+  return file_length(file);
+}
+
+int sys_read (int fd, void *buffer, unsigned size)
+{
+  struct thread *cur = thread_current();
+  struct file *file;
+  lock_acquire(file_lock);
+
+  // STDIN, store keyboard input in buffer
+  if (fd == 0)
+  {
+    for (int i = 0; i < size; i++)
+      *((char*)buffer++) = input_getc();
+    lock_release(file_lock);
+    return size;
+  }
+
+  // not STDIN, store file in buffer
+  file = cur->fd_table[fd];  
+  // if can't find file, return -1
+  if (!file)
+  {
+    lock_release(file_lock);
+    return -1;
+  }
+
+  size = file_read(file, buffer, size);
+  lock_release(file_lock);
+  return size;
+}
+
+int sys_write (int fd, const void *buffer, unsigned size)
+{
+  struct thread *cur = thread_current();
+  struct file *file;
+  lock_acquire(file_lock);
+
+  // STDOUT, write to console
+  if (fd == 1)
+  {
+    putbuf(buffer, size);
+    lock_release(file_lock);
+    return size;
+  }
+
+  // not STDOUT, write to file
+  file = cur->fd_table[fd];  
+  // if can't find file, return -1
+  if (!file)
+  {
+    lock_release(file_lock);
+    return -1;
+  }
+
+  size = file_write(file, buffer, size);
+  lock_release(file_lock);
+  return size;
+}
+
+void sys_seek (int fd, unsigned position)
+{
+  struct thread *cur = thread_current();
+  struct file *file; 
+
+  file = cur->fd_table[fd];
+  if (!file) return;
+
+  file_seek(file, position);
+}
+
+unsigned sys_tell (int fd)
+{
+  struct file *file;
+
+  file = thread_current()->fd_table[fd];
+  ASSERT(!file);
+
+  return file_tell(file);
+}
+
+void sys_close (int fd)
+{
+  struct file *file;
+  
+  file = thread_current()->fd_table[fd];
+  ASSERT(!file);
+
+  file_close(file);
 }
