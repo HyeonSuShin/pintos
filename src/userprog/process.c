@@ -140,6 +140,20 @@ process_activate (void)
      interrupts. */
   tss_update ();
 }
+
+int add_file(const char *file)
+{
+  struct thread *cur = thread_current();
+  int fd = cur->next_fd;
+
+  // add file to fd_table of current thread
+  // and increment next_fd
+  cur->fd_table[fd] = file;
+  cur->next_fd++;
+  
+  return fd;
+}
+
 
 /* We load ELF binaries.  The following definitions are taken
    from the ELF specification, [ELF1], more-or-less verbatim.  */

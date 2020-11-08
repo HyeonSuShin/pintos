@@ -71,6 +71,12 @@ bool sys_remove (const char *file)
 int sys_open (const char *file)
 {
   struct file *file;
-  file = filesys_open(file);
+  int fd;
   
+  file = filesys_open(file);
+  if (!file)
+    return -1;
+  fd = add_file(file);
+
+  return fd;
 }
