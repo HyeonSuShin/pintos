@@ -4,6 +4,9 @@
 #include "threads/thread.h"
 
 static void CMD2FileName(char *);
+int find_argc(char *);
+char** make_argv(char *);
+void argument_stack(char **, int, void **esp);
 tid_t process_execute (const char *file_name);
 int process_wait (tid_t);
 void process_exit (void);
