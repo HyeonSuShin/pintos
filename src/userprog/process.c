@@ -21,6 +21,22 @@
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
+static void CMD2FileName(char *cmd){
+  char *save_ptr;
+  char *cmd = strtok_r(cmd, " ", &save_ptr);
+  return;
+}
+
+int find_argc(char *cmd){
+  int argc = 0;
+  char *save_ptr;
+  for(char *tmp = strtok_r(cmd, " ", &save_ptr); tmp != NULL; tmp = strtok_r(NULL, " ", &save_ptr)){
+    if(*tmp != " ")
+      argc++;
+  }
+  return argc;
+}
+
 /* Starts a new thread running a user program loaded from
    FILENAME.  The new thread may be scheduled (and may even exit)
    before process_execute() returns.  Returns the new process's
@@ -37,12 +53,54 @@ process_execute (const char *file_name)
   if (fn_copy == NULL)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
+  
+  CMD2FileName(file_name);
 
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
+}
+
+char** make_argv(char *cmd){
+  char **token = (char **)palloc_get_page(0);
+  char *save_ptr;
+  int count = 0;
+  for(char *tmp = strtok_r(cmd, " ", &save_ptr); tmp != NULL; tmp = strtok_r(NULL, " ", &save_ptr)){
+    if(*tmp != ' '){
+      token[count++] = tmp;
+    }
+  }
+  return token;
+}
+
+void argument_stack(char **argv, int argc, void **esp){
+  int cmd_length = 0;
+  int len;
+  for(int i = argc - 1; 0 <= i; i--){
+    len = strlen(argv[i]);
+    cmd_length += strlen(argv[i]);
+    *esp -= len + 1;
+    strlcpy(*esp, argv[i], len + 1);
+    argv[i] = *esp;
+  }
+  *esp -= ((uint32_t)*esp) % 4;
+  *esp -= 4;
+  **(uint32_t **)esp = 0;
+
+  for(int i = argc - 1; 0 <= i; i--){
+    *esp -= 4;
+    **(uint32_t **)esp = argv[i];
+  }
+
+  *esp -= 4;
+  **(uint32_t **)esp = *esp + 4;
+  
+  *esp -= 4;
+  **(uint32_t **)esp = argc;
+
+  palloc_free_page(argv);
 }
 
 /* A thread function that loads a user process and starts it
@@ -62,6 +120,11 @@ start_process (void *file_name_)
   success = load (file_name, &if_.eip, &if_.esp);
 
   /* If load failed, quit. */
+  if(success){
+    char **argv = make_argv(file_name);
+    argument_stack(argv, find_argc(file_name), &if_.esp);
+  }
+
   palloc_free_page (file_name);
   if (!success) 
     thread_exit ();
