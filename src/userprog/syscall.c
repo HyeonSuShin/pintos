@@ -7,6 +7,8 @@
 #include "devices/shutdown.h"
 #include "devices/input.h"
 #include "filesys/filesys.h"
+#include "userprog/pagedir.h"
+#include "threads/vaddr.h"
 
 static void syscall_handler (struct intr_frame *);
 struct lock *file_lock;
@@ -18,13 +20,20 @@ syscall_init (void)
   lock_init(file_lock);
 }
 
+void get_argument(void *esp, int *arg, int count){
+  for(int i = 0; i < count; i ++){
+    if(!check_address(esp + i)) sys_exit(-1);
+    arg[i] = *(int *)(esp + i);
+  }
+}
+
 static void
 syscall_handler (struct intr_frame *f) 
 {
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
-    thread_exit();
+    sys_exit(-1);
   }
 
   // argv....
@@ -32,44 +41,57 @@ syscall_handler (struct intr_frame *f)
   // argument_stack
   switch (*(int*)f->esp)
   {
+    int argv[3];
     case SYS_HALT:  
       sys_halt();
       break;
     case SYS_EXIT:
+      get_argument(f->esp + 1, &argv[0], 1);
       sys_exit((int)argv[0]);
       break;
     case SYS_EXEC:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_exec((const char*)argv[0]);
       break;
     case SYS_WAIT:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_wait((pid_t)argv[0]);
       break;
     case SYS_CREATE:
+      get_argument(f->esp + 1, &argv[0], 2);
       f->eax = sys_create((const char*)argv[0], (unsigned)argv[1]);
       break;
     case SYS_REMOVE:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_remove((const char*) argv[0]);
       break;
     case SYS_OPEN:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_open((const char*) argv[0]);
       break;
     case SYS_FILESIZE:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_open((int)argv[0]);
       break;
     case SYS_READ:
+      get_argument(f->esp + 1, &argv[0], 3);
       f->eax = sys_read((int)argv[0], (void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_WRITE:
+      get_argument(f->esp + 1, &argv[0], 3);
       f->eax = sys_write((int)argv[0], (const void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_SEEK:
-      f->eax = sys_seek((int)argv[0], (unsigned)argv[1]);
+      get_argument(f->esp + 1, &argv[0], 2);
+      sys_seek((int)argv[0], (unsigned)argv[1]);
       break;
     case SYS_TELL:
+      get_argument(f->esp + 1, &argv[0], 1);
       f->eax = sys_tell((int)argv[0]);
       break;
     case SYS_CLOSE:
-      f->eax = sys_close((int)argv[0]);
+      get_argument(f->esp + 1, &argv[0], 1);
+      sys_close((int)argv[0]);
       break;
     default:
       sys_exit(-1);
