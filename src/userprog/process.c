@@ -23,7 +23,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 static void CMD2FileName(char *cmd){
   char *save_ptr;
-  char *cmd = strtok_r(cmd, " ", &save_ptr);
+  cmd = strtok_r(cmd, " ", &save_ptr);
   return;
 }
 
@@ -249,7 +249,7 @@ struct Elf32_Ehdr
     Elf32_Half    e_shentsize;
     Elf32_Half    e_shnum;
     Elf32_Half    e_shstrndx;
-  };
+  };  
 
 /* Program header.  See [ELF1] 2-2 to 2-4.
    There are e_phnum of these, starting at file offset e_phoff

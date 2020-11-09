@@ -19,10 +19,61 @@ syscall_init (void)
 }
 
 static void
-syscall_handler (struct intr_frame *f UNUSED) 
+syscall_handler (struct intr_frame *f) 
 {
-  printf ("system call!\n");
-  thread_exit ();
+  // if address is invalid, exit program
+  if (!check_address(f->esp))
+  {
+    thread_exit();
+  }
+
+  // argv....
+
+  // argument_stack
+  switch (*(int*)f->esp)
+  {
+    case SYS_HALT:  
+      sys_halt();
+      break;
+    case SYS_EXIT:
+      sys_exit((int)argv[0]);
+      break;
+    case SYS_EXEC:
+      f->eax = sys_exec((const char*)argv[0]);
+      break;
+    case SYS_WAIT:
+      f->eax = sys_wait((pid_t)argv[0]);
+      break;
+    case SYS_CREATE:
+      f->eax = sys_create((const char*)argv[0], (unsigned)argv[1]);
+      break;
+    case SYS_REMOVE:
+      f->eax = sys_remove((const char*) argv[0]);
+      break;
+    case SYS_OPEN:
+      f->eax = sys_open((const char*) argv[0]);
+      break;
+    case SYS_FILESIZE:
+      f->eax = sys_open((int)argv[0]);
+      break;
+    case SYS_READ:
+      f->eax = sys_read((int)argv[0], (void*)argv[1], (unsigned)argv[2]);
+      break;
+    case SYS_WRITE:
+      f->eax = sys_write((int)argv[0], (const void*)argv[1], (unsigned)argv[2]);
+      break;
+    case SYS_SEEK:
+      f->eax = sys_seek((int)argv[0], (unsigned)argv[1]);
+      break;
+    case SYS_TELL:
+      f->eax = sys_tell((int)argv[0]);
+      break;
+    case SYS_CLOSE:
+      f->eax = sys_close((int)argv[0]);
+      break;
+    default:
+      exit(-1);
+  }
 }
 
 bool check_address (void *addr)
