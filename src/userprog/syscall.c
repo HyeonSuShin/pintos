@@ -134,15 +134,11 @@ int sys_open (const char *file)
 {
   struct file *file_ptr;
   int fd;
-
-  lock_acquire(file_lock);
   
   file_ptr = filesys_open(file);
   if (!file_ptr)
     return -1;
   fd = add_file(file_ptr);
-
-  lock_release(file_lock);
 
   return fd;
 }
