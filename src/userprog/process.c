@@ -46,7 +46,6 @@ process_execute (const char *file_name)
 {
   char *fn_copy;
   tid_t tid;
-  printf("process_execute\n");
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
   fn_copy = palloc_get_page (0);
@@ -121,7 +120,6 @@ start_process (void *file_name_)
   CMD2FileName(file_name);
   success = load (file_name, &if_.eip, &if_.esp);
   
-  printf("dddddd\n");
   /* If load failed, quit. */
   if(success){
     char **argv = make_argv(file_name);
@@ -197,7 +195,6 @@ process_exit (void)
   }
 
   sema_up(&cur->wait);
-  printf("hi\n");
 }
 
 /* Sets up the CPU for running user code in the current

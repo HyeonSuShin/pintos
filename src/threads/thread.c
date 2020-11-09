@@ -222,7 +222,6 @@ thread_create (const char *name, int priority,
       thread_yield(); 
     }
   }
-  printf("creation!\n");
   return tid;
 }
 
@@ -288,7 +287,7 @@ thread_current (void)
      of stack, so a few big automatic arrays or moderate
      recursion can cause stack overflow. */
   ASSERT (is_thread (t));
-  ASSERT (t->status == THREAD_RUNNING); //
+  ASSERT (t->status == THREAD_RUNNING); 
 
   return t;
 }
@@ -305,7 +304,6 @@ thread_tid (void)
 void
 thread_exit (void) 
 {
-  struct thread *cur = thread_current();
   ASSERT (!intr_context ());
 
 #ifdef USERPROG
@@ -316,10 +314,8 @@ thread_exit (void)
      and schedule another process.  That process will destroy us
      when it calls thread_schedule_tail(). */
   intr_disable ();
-  list_remove (&cur->allelem);
-  printf("!! %d\n", cur->status);
+  list_remove (&thread_current()->allelem);
   thread_current()->status = THREAD_DYING;
-  printf("good exit\n");
   schedule ();
   NOT_REACHED ();
 }

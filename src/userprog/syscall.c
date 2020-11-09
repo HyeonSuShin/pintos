@@ -24,7 +24,6 @@ void get_argument(void *esp, int *arg, int count){
   for(int i = 0; i < count; i ++){
     if(!check_address(esp + 4*i)) 
     {
-      printf("fuck up\n");
       sys_exit(-1);
     }
     arg[i] = *(int *)(esp + 4*i);
@@ -34,14 +33,11 @@ void get_argument(void *esp, int *arg, int count){
 static void
 syscall_handler (struct intr_frame *f) 
 {
-  printf("in handler %d\n", *(int*)f->esp);
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
     sys_exit(-1);
   }
-
-  // argv....
 
   // argument_stack
   switch (*(int*)f->esp)
@@ -126,7 +122,6 @@ pid_t sys_exec(const char *cmd_line)
 {
   pid_t pid;
   struct thread *child;
-  printf("in sys_exec\n");
   pid = process_execute(cmd_line);
   if (pid == -1)
     return -1;
@@ -219,34 +214,26 @@ int sys_write (int fd, const void *buffer, unsigned size)
   struct thread *cur = thread_current();
   struct file *file;
   lock_acquire(&file_lock);
-  printf("1\n");
   ASSERT(fd!=0);
 
   // STDOUT, write to console
   if (fd == 1)
   {
     putbuf(buffer, size);
-    printf("2\n");
     lock_release(&file_lock);
     return size;
   }
-  printf("3 %d\n", fd);
   // not STDOUT, write to file
-  printf("fdtable: %p\n", cur->fd_table);
   file = cur->fd_table[fd];  
-  printf("33\n");
   // if can't find file, return -1
   if (!file)
   {
-    printf("44\n");
     lock_release(&file_lock);
-    printf("4\n");
     return -1;
   }
-  printf("5\n");
   size = file_write(file, buffer, size);
   lock_release(&file_lock);
-  printf("6\n");
+
   return size;
 }
 
