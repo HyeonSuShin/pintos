@@ -241,9 +241,11 @@ unsigned sys_tell (int fd)
 void sys_close (int fd)
 {
   struct file *file;
+  struct thread *cur = thread_current();
   
-  file = thread_current()->fd_table[fd];
+  file = cur->fd_table[fd];
   ASSERT(!file);
 
   file_close(file);
+  cur->fd_table[fd] = NULL;
 }

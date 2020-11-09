@@ -623,7 +623,7 @@ init_thread (struct thread *t, const char *name, int priority)
   sema_init(t->wait, 0);
   t->load_success = false;
   t->next_fd = 2;
-  list_push_back(thread_current()->child_list, &t->child_elem);
+  list_push_back(&thread_current()->child_list, &t->child_elem);
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
