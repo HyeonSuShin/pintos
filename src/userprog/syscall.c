@@ -162,6 +162,8 @@ int sys_read (int fd, void *buffer, unsigned size)
   struct file *file;
   lock_acquire(file_lock);
 
+  ASSERT(fd!=1);
+
   // STDIN, store keyboard input in buffer
   if (fd == 0)
   {
@@ -190,6 +192,8 @@ int sys_write (int fd, const void *buffer, unsigned size)
   struct thread *cur = thread_current();
   struct file *file;
   lock_acquire(file_lock);
+
+  ASSERT(fd!=0);
 
   // STDOUT, write to console
   if (fd == 1)
