@@ -23,7 +23,13 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 static void CMD2FileName(char *cmd){
   char *save_ptr;
+  printf("before\n");
   cmd = strtok_r(cmd, " ", &save_ptr);
+  printf("after\n");
+  char *loop;
+  //for(loop = cmd; *loop != "\0" && *loop != " "; loop++) ;
+  //*loop = "\0";
+  printf("CMD2\n");
   return;
 }
 
@@ -121,7 +127,8 @@ start_process (void *file_name_)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
   success = load (file_name, &if_.eip, &if_.esp);
-
+  
+  printf("dddddd\n");
   /* If load failed, quit. */
   if(success){
     char **argv = make_argv(file_name);
