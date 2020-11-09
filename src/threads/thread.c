@@ -212,9 +212,10 @@ thread_create (const char *name, int priority,
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
   sf->ebp = 0;
+
   /* Add to run queue. */
-  printf("ununun\n");
-  t->parent = thread_current();
+  //if(strcmp(t->name, "main"))
+    //t->parent = thread_current();
   thread_unblock (t);
   if(!list_empty(&ready_list)){
     if(thread_current()->priority < list_entry(list_front(&ready_list), struct thread, elem)->priority){
@@ -222,7 +223,6 @@ thread_create (const char *name, int priority,
     }
   }
   printf("creation!\n");
-
   return tid;
 }
 

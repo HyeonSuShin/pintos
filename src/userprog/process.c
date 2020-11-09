@@ -57,7 +57,9 @@ process_execute (const char *file_name)
   CMD2FileName(file_name);
 
   /* Create a new thread to execute FILE_NAME. */
+  printf("dd\n");
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  printf("ss\n");
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
@@ -108,6 +110,7 @@ void argument_stack(char **argv, int argc, void **esp){
 static void
 start_process (void *file_name_)
 {
+  printf("hihi\n");
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
@@ -152,14 +155,13 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid) 
 {
-  struct thread *parent;
+  struct thread *parent = thread_current();
   struct thread *child;
   if (!(child = thread_get_child(child_tid)))
     return -1;
-  
-  sema_down(&parent->wait);
+  sema_down(&child->wait);
   list_remove(&child->child_elem);
-
+    
   return child->exit_status;
 }
 
@@ -196,7 +198,7 @@ process_exit (void)
     fd++;
   }
 
-  sema_up(&cur->parent->wait);
+  sema_up(&cur->wait);
 }
 
 /* Sets up the CPU for running user code in the current

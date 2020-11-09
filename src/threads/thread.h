@@ -116,7 +116,7 @@ struct thread
     struct semaphore load;
     struct semaphore wait;
     int exit_status;
-    struct thread *parent;
+    //struct thread *parent;
     struct list child_list;
     struct list_elem child_elem;
     bool load_success;
