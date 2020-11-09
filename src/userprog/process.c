@@ -46,7 +46,7 @@ process_execute (const char *file_name)
 {
   char *fn_copy;
   tid_t tid;
-
+  printf("process_execute\n");
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
   fn_copy = palloc_get_page (0);
@@ -126,7 +126,7 @@ start_process (void *file_name_)
   }
 
   palloc_free_page (file_name);
-  sema_up(thread_current()->load);
+  sema_up(&thread_current()->load);
   if (!success)
     thread_exit ();
   thread_current()->load_success = true;
@@ -157,10 +157,10 @@ process_wait (tid_t child_tid)
   if (!(child = thread_get_child(child_tid)))
     return -1;
   
-  sema_down(parent->wait);
+  sema_down(&parent->wait);
   list_remove(&child->child_elem);
 
-  return child->status;
+  return child->exit_status;
 }
 
 /* Free the current process's resources. */
@@ -196,7 +196,7 @@ process_exit (void)
     fd++;
   }
 
-  sema_up(cur->parent->wait);
+  sema_up(&cur->parent->wait);
 }
 
 /* Sets up the CPU for running user code in the current

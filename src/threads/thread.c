@@ -213,12 +213,15 @@ thread_create (const char *name, int priority,
   sf->eip = switch_entry;
   sf->ebp = 0;
   /* Add to run queue. */
+  printf("ununun\n");
+  t->parent = thread_current();
   thread_unblock (t);
   if(!list_empty(&ready_list)){
     if(thread_current()->priority < list_entry(list_front(&ready_list), struct thread, elem)->priority){
       thread_yield(); 
     }
   }
+  printf("creation!\n");
 
   return tid;
 }
@@ -616,15 +619,15 @@ init_thread (struct thread *t, const char *name, int priority)
   t->original_priority = priority;
   list_init(&t->donor_thread_list);
   t->magic = THREAD_MAGIC;
-
-  t->parent = thread_current();
   list_init(&t->child_list);
-  sema_init(t->load, 0);
-  sema_init(t->wait, 0);
+  sema_init(&t->load, 0);
+  sema_init(&t->wait, 0);
   t->load_success = false;
   t->next_fd = 2;
-  list_push_back(&thread_current()->child_list, &t->child_elem);
-
+  if(strcmp(name, "main"))
+  {
+    list_push_back(&thread_current()->child_list, &t->child_elem);
+  }
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);

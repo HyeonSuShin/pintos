@@ -149,6 +149,7 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
+   printf("nnnn\n");
   sys_exit(-1);
 
   /* To implement virtual memory, delete the rest of the function

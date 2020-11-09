@@ -11,13 +11,13 @@
 #include "threads/vaddr.h"
 
 static void syscall_handler (struct intr_frame *);
-struct lock *file_lock;
+struct lock file_lock;
 
 void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
-  lock_init(file_lock);
+  lock_init(&file_lock);
 }
 
 void get_argument(void *esp, int *arg, int count){
@@ -130,7 +130,7 @@ pid_t sys_exec(const char *cmd_line)
   if (!child)
     return -1;
   
-  sema_down(child->load); //sema_up after load is done in start_process 
+  sema_down(&child->load); //sema_up after load is done in start_process 
   if (!child->load_success)
     return -1;
 
@@ -182,7 +182,7 @@ int sys_read (int fd, void *buffer, unsigned size)
 {
   struct thread *cur = thread_current();
   struct file *file;
-  lock_acquire(file_lock);
+  lock_acquire(&file_lock);
 
   ASSERT(fd!=1);
 
@@ -191,7 +191,7 @@ int sys_read (int fd, void *buffer, unsigned size)
   {
     for (int i = 0; i < size; i++)
       *((char*)buffer++) = input_getc();
-    lock_release(file_lock);
+    lock_release(&file_lock);
     return size;
   }
 
@@ -200,12 +200,12 @@ int sys_read (int fd, void *buffer, unsigned size)
   // if can't find file, return -1
   if (!file)
   {
-    lock_release(file_lock);
+    lock_release(&file_lock);
     return -1;
   }
 
   size = file_read(file, buffer, size);
-  lock_release(file_lock);
+  lock_release(&file_lock);
   return size;
 }
 
@@ -213,7 +213,7 @@ int sys_write (int fd, const void *buffer, unsigned size)
 {
   struct thread *cur = thread_current();
   struct file *file;
-  lock_acquire(file_lock);
+  lock_acquire(&file_lock);
 
   ASSERT(fd!=0);
 
@@ -221,7 +221,7 @@ int sys_write (int fd, const void *buffer, unsigned size)
   if (fd == 1)
   {
     putbuf(buffer, size);
-    lock_release(file_lock);
+    lock_release(&file_lock);
     return size;
   }
 
@@ -230,12 +230,12 @@ int sys_write (int fd, const void *buffer, unsigned size)
   // if can't find file, return -1
   if (!file)
   {
-    lock_release(file_lock);
+    lock_release(&file_lock);
     return -1;
   }
 
   size = file_write(file, buffer, size);
-  lock_release(file_lock);
+  lock_release(&file_lock);
   return size;
 }
 
