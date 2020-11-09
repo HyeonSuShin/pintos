@@ -7,6 +7,8 @@ typedef int pid_t;
 
 void syscall_init (void);
 
+bool check_address (void *addr);
+
 void sys_halt (void);
 void sys_exit(int status);
 pid_t sys_exec(const char *cmd_line);
