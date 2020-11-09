@@ -621,6 +621,7 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->child_list);
   sema_init(t->load, 0);
   sema_init(t->wait, 0);
+  t->load_success = false;
   t->next_fd = 2;
   list_push_back(thread_current()->child_list, &t->child_elem);
 

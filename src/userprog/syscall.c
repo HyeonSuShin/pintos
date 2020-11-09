@@ -108,8 +108,9 @@ pid_t sys_exec(const char *cmd_line)
   if (!child)
     return -1;
   
-  sema_down(child->load); //sema_up in start_process 
-  // if load fail, thread exit and return -1
+  sema_down(child->load); //sema_up after load is done in start_process 
+  if (!child->load_success)
+    return -1;
 
   return pid;
 }

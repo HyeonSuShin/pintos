@@ -118,6 +118,7 @@ struct thread
     struct list_elem child_elem;
     struct semaphore *load; 
     struct semaphore *wait; 
+    bool load_success;
     struct file **fd_table; // close all when process exit
     int next_fd; 
   };

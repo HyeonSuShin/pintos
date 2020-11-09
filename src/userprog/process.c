@@ -126,9 +126,10 @@ start_process (void *file_name_)
   }
 
   palloc_free_page (file_name);
-  if (!success) 
+  sema_up(thread_current()->load);
+  if (!success)
     thread_exit ();
-
+  thread_current()->load_success = true;
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
