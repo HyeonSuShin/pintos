@@ -22,15 +22,19 @@ syscall_init (void)
 
 void get_argument(void *esp, int *arg, int count){
   for(int i = 0; i < count; i ++){
-    if(!check_address(esp + i)) sys_exit(-1);
-    arg[i] = *(int *)(esp + i);
+    if(!check_address(esp + 4*i)) 
+    {
+      printf("fuck up\n");
+      sys_exit(-1);
+    }
+    arg[i] = *(int *)(esp + 4*i);
   }
 }
 
 static void
 syscall_handler (struct intr_frame *f) 
 {
-  printf("in handler\n");
+  printf("in handler %d\n", *(int*)f->esp);
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
@@ -47,51 +51,51 @@ syscall_handler (struct intr_frame *f)
       sys_halt();
       break;
     case SYS_EXIT:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       sys_exit((int)argv[0]);
       break;
     case SYS_EXEC:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_exec((const char*)argv[0]);
       break;
     case SYS_WAIT:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_wait((pid_t)argv[0]);
       break;
     case SYS_CREATE:
-      get_argument(f->esp + 1, &argv[0], 2);
+      get_argument(f->esp + 4, &argv[0], 2);
       f->eax = sys_create((const char*)argv[0], (unsigned)argv[1]);
       break;
     case SYS_REMOVE:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_remove((const char*) argv[0]);
       break;
     case SYS_OPEN:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_open((const char*) argv[0]);
       break;
     case SYS_FILESIZE:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_open((int)argv[0]);
       break;
     case SYS_READ:
-      get_argument(f->esp + 1, &argv[0], 3);
+      get_argument(f->esp + 4, &argv[0], 3);
       f->eax = sys_read((int)argv[0], (void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_WRITE:
-      get_argument(f->esp + 1, &argv[0], 3);
+      get_argument(f->esp + 4, &argv[0], 3);
       f->eax = sys_write((int)argv[0], (const void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_SEEK:
-      get_argument(f->esp + 1, &argv[0], 2);
+      get_argument(f->esp + 4, &argv[0], 2);
       sys_seek((int)argv[0], (unsigned)argv[1]);
       break;
     case SYS_TELL:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       f->eax = sys_tell((int)argv[0]);
       break;
     case SYS_CLOSE:
-      get_argument(f->esp + 1, &argv[0], 1);
+      get_argument(f->esp + 4, &argv[0], 1);
       sys_close((int)argv[0]);
       break;
     default:
@@ -215,28 +219,34 @@ int sys_write (int fd, const void *buffer, unsigned size)
   struct thread *cur = thread_current();
   struct file *file;
   lock_acquire(&file_lock);
-
+  printf("1\n");
   ASSERT(fd!=0);
 
   // STDOUT, write to console
   if (fd == 1)
   {
     putbuf(buffer, size);
+    printf("2\n");
     lock_release(&file_lock);
     return size;
   }
-
+  printf("3 %d\n", fd);
   // not STDOUT, write to file
+  printf("fdtable: %p\n", cur->fd_table);
   file = cur->fd_table[fd];  
+  printf("33\n");
   // if can't find file, return -1
   if (!file)
   {
+    printf("44\n");
     lock_release(&file_lock);
+    printf("4\n");
     return -1;
   }
-
+  printf("5\n");
   size = file_write(file, buffer, size);
   lock_release(&file_lock);
+  printf("6\n");
   return size;
 }
 

@@ -23,13 +23,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 static void CMD2FileName(char *cmd){
   char *save_ptr;
-  printf("before\n");
   cmd = strtok_r(cmd, " ", &save_ptr);
-  printf("after\n");
-  char *loop;
-  //for(loop = cmd; *loop != "\0" && *loop != " "; loop++) ;
-  //*loop = "\0";
-  printf("CMD2\n");
   return;
 }
 
@@ -58,16 +52,15 @@ process_execute (const char *file_name)
   fn_copy = palloc_get_page (0);
   if (fn_copy == NULL)
     return TID_ERROR;
+
   strlcpy (fn_copy, file_name, PGSIZE);
-  
   CMD2FileName(file_name);
 
   /* Create a new thread to execute FILE_NAME. */
-  printf("dd\n");
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
-  printf("ss\n");
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
+  
   return tid;
 }
 
@@ -116,16 +109,16 @@ void argument_stack(char **argv, int argc, void **esp){
 static void
 start_process (void *file_name_)
 {
-  printf("hihi\n");
   char *file_name = file_name_;
   struct intr_frame if_;
-  bool success;
-
+  bool success;  
+  
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
+  CMD2FileName(file_name);
   success = load (file_name, &if_.eip, &if_.esp);
   
   printf("dddddd\n");
@@ -179,7 +172,6 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
   struct file *file;
-  int fd = 2;
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -198,14 +190,14 @@ process_exit (void)
       pagedir_destroy (pd);
     }
 
-  while (!(file = cur->fd_table[fd]))
+  for (int fd = cur->next_fd - 1; fd >= 2; fd--)
   {
     file_close(file);
     cur->fd_table[fd] = NULL;
-    fd++;
   }
 
   sema_up(&cur->wait);
+  printf("hi\n");
 }
 
 /* Sets up the CPU for running user code in the current

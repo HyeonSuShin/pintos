@@ -281,14 +281,14 @@ struct thread *
 thread_current (void) 
 {
   struct thread *t = running_thread ();
-  
+
   /* Make sure T is really a thread.
      If either of these assertions fire, then your thread may
      have overflowed its stack.  Each thread has less than 4 kB
      of stack, so a few big automatic arrays or moderate
      recursion can cause stack overflow. */
   ASSERT (is_thread (t));
-  ASSERT (t->status == THREAD_RUNNING);
+  ASSERT (t->status == THREAD_RUNNING); //
 
   return t;
 }
@@ -305,6 +305,7 @@ thread_tid (void)
 void
 thread_exit (void) 
 {
+  struct thread *cur = thread_current();
   ASSERT (!intr_context ());
 
 #ifdef USERPROG
@@ -315,8 +316,10 @@ thread_exit (void)
      and schedule another process.  That process will destroy us
      when it calls thread_schedule_tail(). */
   intr_disable ();
-  list_remove (&thread_current()->allelem);
-  thread_current ()->status = THREAD_DYING;
+  list_remove (&cur->allelem);
+  printf("!! %d\n", cur->status);
+  thread_current()->status = THREAD_DYING;
+  printf("good exit\n");
   schedule ();
   NOT_REACHED ();
 }
@@ -702,7 +705,7 @@ thread_schedule_tail (struct thread *prev)
   if (prev != NULL && prev->status == THREAD_DYING && prev != initial_thread) 
     {
       ASSERT (prev != cur);
-      palloc_free_page (prev);
+      //palloc_free_page (prev);
     }
 }
 
@@ -721,7 +724,7 @@ schedule (void)
   struct thread *prev = NULL;
 
   ASSERT (intr_get_level () == INTR_OFF);
-  ASSERT (cur->status != THREAD_RUNNING);
+  ASSERT (cur->status != THREAD_RUNNING); //
   ASSERT (is_thread (next));
 
   if (cur != next)
