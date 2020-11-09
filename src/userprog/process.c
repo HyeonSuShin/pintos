@@ -23,7 +23,10 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
 static void CMD2FileName(char *cmd){
   char *save_ptr;
-  cmd = strtok_r(cmd, " ", &save_ptr);
+  cmd = strtok_r(cmd, ' ', &save_ptr);
+  char *loop;
+  for(loop = cmd; *loop != '\0' || *loop != ' '; loop++);
+  *loop = '\0';
   return;
 }
 
@@ -46,7 +49,7 @@ process_execute (const char *file_name)
 {
   char *fn_copy;
   tid_t tid;
-  printf("process_execute\n");
+  // printf("process_execute\n");
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
   fn_copy = palloc_get_page (0);
@@ -57,9 +60,9 @@ process_execute (const char *file_name)
   CMD2FileName(file_name);
 
   /* Create a new thread to execute FILE_NAME. */
-  printf("dd\n");
+  // printf("dd\n");
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
-  printf("ss\n");
+  // printf("ss\n");
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
@@ -110,7 +113,7 @@ void argument_stack(char **argv, int argc, void **esp){
 static void
 start_process (void *file_name_)
 {
-  printf("hihi\n");
+  // printf("hihi\n");
   char *file_name = file_name_;
   struct intr_frame if_;
   bool success;
@@ -321,6 +324,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   process_activate ();
 
   /* Open executable file. */
+  // printf("11111111111111111\n");
   file = filesys_open (file_name);
   if (file == NULL) 
     {

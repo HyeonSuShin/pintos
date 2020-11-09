@@ -222,7 +222,7 @@ thread_create (const char *name, int priority,
       thread_yield(); 
     }
   }
-  printf("creation!\n");
+  // printf("creation!\n");
   return tid;
 }
 

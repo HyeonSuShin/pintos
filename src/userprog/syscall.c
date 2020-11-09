@@ -30,7 +30,7 @@ void get_argument(void *esp, int *arg, int count){
 static void
 syscall_handler (struct intr_frame *f) 
 {
-  printf("in handler\n");
+  // printf("in handler\n");
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
@@ -122,7 +122,7 @@ pid_t sys_exec(const char *cmd_line)
 {
   pid_t pid;
   struct thread *child;
-  printf("in sys_exec\n");
+  // printf("in sys_exec\n");
   pid = process_execute(cmd_line);
   if (pid == -1)
     return -1;
