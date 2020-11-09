@@ -617,7 +617,7 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->donor_thread_list);
   t->magic = THREAD_MAGIC;
 
-  parent = thread_current();
+  t->parent = thread_current();
   list_init(&t->child_list);
   sema_init(t->load, 0);
   sema_init(t->wait, 0);
