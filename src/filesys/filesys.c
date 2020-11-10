@@ -45,6 +45,10 @@ filesys_done (void)
 bool
 filesys_create (const char *name, off_t initial_size) 
 {
+  // exit when name is null
+  if (!name)
+    sys_exit(-1);
+  
   block_sector_t inode_sector = 0;
   struct dir *dir = dir_open_root ();
   bool success = (dir != NULL

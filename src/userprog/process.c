@@ -85,20 +85,28 @@ void argument_stack(char **argv, int argc, void **esp){
     strlcpy(*esp, argv[i], len + 1);
     argv[i] = *esp;
   }
+  
+  // line alignment
   *esp -= ((uint32_t)*esp) % 4;
+
+  // push null
   *esp -= 4;
   **(uint32_t **)esp = 0;
 
+  // push argv[i]
   for(int i = argc - 1; 0 <= i; i--){
     *esp -= 4;
     **(uint32_t **)esp = argv[i];
   }
 
+  // push argv
   *esp -= 4;
   **(uint32_t **)esp = *esp + 4;
-  
+
+  // push argc
   *esp -= 4;
   **(uint32_t **)esp = argc;
+
 
   *esp -= 4;
   **(uint32_t **)esp = 0;
