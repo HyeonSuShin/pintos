@@ -52,6 +52,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_EXEC:
       get_argument(f->esp + 4, &argv[0], 1);
+      check_address((char*)argv[0]);
       f->eax = sys_exec((const char*)argv[0]);
       break;
     case SYS_WAIT:
@@ -60,14 +61,17 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_CREATE:
       get_argument(f->esp + 4, &argv[0], 2);
+      check_address((char*)argv[0]);
       f->eax = sys_create((const char*)argv[0], (unsigned)argv[1]);
       break;
     case SYS_REMOVE:
       get_argument(f->esp + 4, &argv[0], 1);
+      check_address((char*)argv[0]);
       f->eax = sys_remove((const char*) argv[0]);
       break;
     case SYS_OPEN:
       get_argument(f->esp + 4, &argv[0], 1);
+      check_address((char*)argv[0]);
       f->eax = sys_open((const char*) argv[0]);
       break;
     case SYS_FILESIZE:
@@ -76,10 +80,12 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_READ:
       get_argument(f->esp + 4, &argv[0], 3);
+      check_address((void*)argv[1]);
       f->eax = sys_read((int)argv[0], (void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_WRITE:
       get_argument(f->esp + 4, &argv[0], 3);
+      check_address((void*)argv[1]);
       f->eax = sys_write((int)argv[0], (const void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_SEEK:
@@ -101,7 +107,7 @@ syscall_handler (struct intr_frame *f)
 
 bool check_address (void *addr)
 {
-  if (addr >= 0x8048000 && addr < 0xc0000000)
+  if (addr >= 0x8048000 && addr < 0xc0000000 && addr != 0)
     return true;
   return false;
 }
@@ -194,8 +200,9 @@ int sys_read (int fd, void *buffer, unsigned size)
   // STDIN, store keyboard input in buffer
   if (fd == 0)
   {
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++){
       *((char*)buffer++) = input_getc();
+    }
     lock_release(&file_lock);
     return size;
   }
