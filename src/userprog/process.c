@@ -45,21 +45,26 @@ int find_argc(char *cmd){
 tid_t
 process_execute (const char *file_name) 
 {
-  char *fn_copy;
+  char *fn_copy, *fn_copy1;
   tid_t tid;
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
   fn_copy = palloc_get_page (0);
+  fn_copy1 = palloc_get_page(0);
   if (fn_copy == NULL)
     return TID_ERROR;
-
+  
   strlcpy (fn_copy, file_name, PGSIZE);
-  CMD2FileName(file_name);
+  strlcpy (fn_copy1, file_name, PGSIZE);
+
+  CMD2FileName(fn_copy1);
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (fn_copy1, PRI_DEFAULT, start_process, fn_copy);
+
+  palloc_free_page(fn_copy1);
   if (tid == TID_ERROR)
-    palloc_free_page (fn_copy); 
+    palloc_free_page (fn_copy);
   
   return tid;
 }
@@ -134,20 +139,21 @@ start_process (void *file_name_)
   fn_copy2 = palloc_get_page (0);
   strlcpy (fn_copy1, file_name, PGSIZE);
   strlcpy (fn_copy2, file_name, PGSIZE);
-  CMD2FileName(file_name);
-  success = load (file_name, &if_.eip, &if_.esp);
+  char **argv = make_argv(fn_copy1);
+  success = load (argv[0], &if_.eip, &if_.esp);
   
   /* If load failed, quit. */
   if(success){
-    char **argv = make_argv(fn_copy1);
     argument_stack(argv, find_argc(fn_copy2), &if_.esp);
   }
 
   palloc_free_page (file_name);
+
+  thread_current()->load_success = success;
   sema_up(&thread_current()->load);
+
   if (!success)
     thread_exit ();
-  thread_current()->load_success = true;
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its

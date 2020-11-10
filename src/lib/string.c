@@ -245,6 +245,7 @@ strtok_r (char *s, const char *delimiters, char **save_ptr)
     s = *save_ptr;
   ASSERT (s != NULL);
 
+  // printf ("2. s : !%s! c: !%c!\n", s, *s);
   /* Skip any DELIMITERS at our current position. */
   while (strchr (delimiters, *s) != NULL) 
     {
@@ -259,11 +260,12 @@ strtok_r (char *s, const char *delimiters, char **save_ptr)
 
       s++;
     }
-
+  // printf ("3. s : !%s! c: !%c!\n", s, *s);
   /* Skip any non-DELIMITERS up to the end of the string. */
   token = s;
   while (strchr (delimiters, *s) == NULL)
     s++;
+  // printf ("4. s : !%s! c: !%c!\n", s, *s);
   if (*s != '\0') 
     {
       *s = '\0';
