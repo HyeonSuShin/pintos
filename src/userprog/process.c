@@ -145,7 +145,8 @@ start_process (void *file_name_)
   if(success){
     argument_stack(argv, find_argc(fn_copy2), &if_.esp);
   }
-
+  palloc_free_page(fn_copy1);
+  palloc_free_page(fn_copy2);
   palloc_free_page (file_name);
 
   thread_current()->load_success = success;
@@ -212,6 +213,7 @@ process_exit (void)
 
   for (int fd = cur->next_fd - 1; fd >= 2; fd--)
   {
+    file = cur->fd_table[fd];
     file_close(file);
     cur->fd_table[fd] = NULL;
   }
