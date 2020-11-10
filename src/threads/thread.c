@@ -195,7 +195,8 @@ thread_create (const char *name, int priority,
   tid = t->tid = allocate_tid ();
 
   /* Allocate file descriptor */
-  t->fd_table = palloc_get_multiple (PAL_ZERO, 2);
+  // t->fd_table = palloc_get_multiple (PAL_ZERO, 2);
+  t->fd_table = palloc_get_page(PAL_ZERO);
   if (t->fd_table == NULL)
     return TID_ERROR;
 
@@ -217,6 +218,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   //if(strcmp(t->name, "main"))
     //t->parent = thread_current();
+  t->load_file = NULL;
   thread_unblock (t);
   if(!list_empty(&ready_list)){
     if(thread_current()->priority < list_entry(list_front(&ready_list), struct thread, elem)->priority){

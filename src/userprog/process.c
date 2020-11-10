@@ -213,8 +213,14 @@ process_exit (void)
 
   for (int fd = cur->next_fd - 1; fd >= 2; fd--)
   {
+    file = cur->fd_table[fd];
     file_close(file);
     cur->fd_table[fd] = NULL;
+  }
+
+  if(cur->load_file){
+    file_close(cur->load_file);
+    cur->load_file = NULL;
   }
 
   sema_up(&cur->wait);
@@ -249,7 +255,7 @@ int add_file(struct file *file)
   return fd;
 }
 
-
+
 /* We load ELF binaries.  The following definitions are taken
    from the ELF specification, [ELF1], more-or-less verbatim.  */
 
@@ -347,6 +353,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
       goto done; 
     }
 
+  t->load_file = file;
+  file_deny_write(file);
+
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
       || memcmp (ehdr.e_ident, "\177ELF\1\1\1", 7)
@@ -430,7 +439,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
  done:
   /* We arrive here whether the load is successful or not. */
-  file_close (file);
+  // file_close (file);
   return success;
 }
 
