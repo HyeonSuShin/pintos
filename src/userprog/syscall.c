@@ -101,7 +101,7 @@ syscall_handler (struct intr_frame *f)
 
 bool check_address (void *addr)
 {
-  if (addr >= 0x8048000 && addr <= 0xc0000000)
+  if (addr >= 0x8048000 && addr < 0xc0000000)
     return true;
   return false;
 }

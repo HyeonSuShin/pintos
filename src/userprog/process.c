@@ -30,12 +30,10 @@ static void CMD2FileName(char *cmd){
 int find_argc(char *cmd){
   int argc = 0;
   char *save_ptr;
-  printf("find_argc, cmd: %s\n", cmd);
   for(char *tmp = strtok_r(cmd, " ", &save_ptr); tmp != NULL; tmp = strtok_r(NULL, " ", &save_ptr)){
     if(*tmp != " ")
       argc++;
   }
-  printf("argc: %d\n", argc);
   return argc;
 }
 
@@ -80,14 +78,12 @@ char** make_argv(char *cmd){
 void argument_stack(char **argv, int argc, void **esp){
   int cmd_length = 0;
   int len;
-  printf("argc: %d\n", argc);
   for(int i = argc - 1; 0 <= i; i--){
     len = strlen(argv[i]);
     cmd_length += strlen(argv[i]);
     *esp -= len + 1;
     strlcpy(*esp, argv[i], len + 1);
     argv[i] = *esp;
-    printf("%s\n", argv[i]);
   }
   *esp -= ((uint32_t)*esp) % 4;
   *esp -= 4;
@@ -104,6 +100,9 @@ void argument_stack(char **argv, int argc, void **esp){
   *esp -= 4;
   **(uint32_t **)esp = argc;
 
+  *esp -= 4;
+  **(uint32_t **)esp = 0;
+
   palloc_free_page(argv);
 }
 
@@ -117,7 +116,6 @@ start_process (void *file_name_)
   bool success;  
   char *fn_copy1, *fn_copy2;  
 
-  printf("!%s!\n", file_name);
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
