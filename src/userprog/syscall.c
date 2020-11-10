@@ -157,9 +157,14 @@ int sys_open (const char *file)
   struct file *file_ptr;
   int fd;
   
+  if (!file)
+    sys_exit(-1);
+
   file_ptr = filesys_open(file);
   if (!file_ptr)
+  {
     return -1;
+  }
   fd = add_file(file_ptr);
 
   return fd;
