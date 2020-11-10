@@ -15,6 +15,7 @@
 #include "threads/init.h"
 #include "threads/interrupt.h"
 #include "threads/palloc.h"
+#include "threads/malloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
@@ -85,7 +86,7 @@ void argument_stack(char **argv, int argc, void **esp){
     strlcpy(*esp, argv[i], len + 1);
     argv[i] = *esp;
   }
-  
+
   // line alignment
   *esp -= ((uint32_t)*esp) % 4;
 
@@ -239,7 +240,7 @@ int add_file(struct file *file)
   // and increment next_fd
   cur->fd_table[fd] = file;
   cur->next_fd++;
-  
+
   return fd;
 }
 
