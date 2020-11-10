@@ -52,7 +52,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_EXEC:
       get_argument(f->esp + 4, &argv[0], 1);
-      check_address((char*)argv[0]);
+      if(!check_address((char*)argv[0])) sys_exit(-1);
       f->eax = sys_exec((const char*)argv[0]);
       break;
     case SYS_WAIT:
@@ -61,17 +61,17 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_CREATE:
       get_argument(f->esp + 4, &argv[0], 2);
-      check_address((char*)argv[0]);
+      if(!check_address((char*)argv[0])) sys_exit(-1);
       f->eax = sys_create((const char*)argv[0], (unsigned)argv[1]);
       break;
     case SYS_REMOVE:
       get_argument(f->esp + 4, &argv[0], 1);
-      check_address((char*)argv[0]);
+      if(!check_address((char*)argv[0])) sys_exit(-1);
       f->eax = sys_remove((const char*) argv[0]);
       break;
     case SYS_OPEN:
       get_argument(f->esp + 4, &argv[0], 1);
-      check_address((char*)argv[0]);
+      if(!check_address((char*)argv[0])) sys_exit(-1);
       f->eax = sys_open((const char*) argv[0]);
       break;
     case SYS_FILESIZE:
@@ -80,12 +80,12 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_READ:
       get_argument(f->esp + 4, &argv[0], 3);
-      check_address((void*)argv[1]);
+      if(!check_address((void*)argv[1])) sys_exit(-1);
       f->eax = sys_read((int)argv[0], (void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_WRITE:
       get_argument(f->esp + 4, &argv[0], 3);
-      check_address((void*)argv[1]);
+      if(!check_address((void*)argv[1])) sys_exit(-1);
       f->eax = sys_write((int)argv[0], (const void*)argv[1], (unsigned)argv[2]);
       break;
     case SYS_SEEK:
