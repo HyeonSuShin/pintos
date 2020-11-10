@@ -72,7 +72,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_FILESIZE:
       get_argument(f->esp + 4, &argv[0], 1);
-      f->eax = sys_open((int)argv[0]);
+      f->eax = sys_filesize((int)argv[0]);
       break;
     case SYS_READ:
       get_argument(f->esp + 4, &argv[0], 3);
