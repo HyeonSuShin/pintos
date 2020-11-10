@@ -267,10 +267,14 @@ void sys_close (int fd)
 {
   struct file *file;
   struct thread *cur = thread_current();
+
+  if (fd >= cur->next_fd || fd<=1)
+    sys_exit(-1);
   
   file = cur->fd_table[fd];
-  ASSERT(!file);
+  ASSERT(file);
 
   file_close(file);
   cur->fd_table[fd] = NULL;
+  cur->next_fd--;
 }
