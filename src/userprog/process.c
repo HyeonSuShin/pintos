@@ -57,7 +57,7 @@ process_execute (const char *file_name)
     palloc_free_page(fn_copy);
     return TID_ERROR;
   }
-  
+
   strlcpy (fn_copy, file_name, PGSIZE);
   strlcpy (fn_copy1, file_name, PGSIZE);
 
@@ -153,6 +153,11 @@ start_process (void *file_name_)
   char **argv = make_argv(fn_copy1);
   thread_current()->pcb = ((struct tempPCB *)file_name_)->_pcb;
   thread_current()->pcb->fd_table = palloc_get_page(PAL_ZERO);
+  if (!thread_current()->pcb->fd_table)
+  {
+    palloc_free_page(thread_current()->pcb->fd_table);
+    sys_exit(-1);
+  }
   thread_current()->pcb->load_success = false;
   thread_current()->pcb->next_fd = 2;
   thread_current()->pcb->load_file = NULL;
