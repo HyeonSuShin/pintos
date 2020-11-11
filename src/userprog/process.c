@@ -57,9 +57,15 @@ process_execute (const char *file_name)
   strlcpy (fn_copy1, file_name, PGSIZE);
 
   CMD2FileName(fn_copy1);
+  struct PCB* pcb = palloc_get_page(PAL_ZERO);
+  struct tempPCB temp = {._pcb = pcb, .cmd = fn_copy};
+  sema_init(&pcb->load, 0);
+  sema_init(&pcb->wait, 0);
+  pcb->parent = thread_current();
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (fn_copy1, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (fn_copy1, PRI_DEFAULT, start_process, &temp);
+  sema_down(&pcb->load); //sema_up after load is done in start_process 
 
   palloc_free_page(fn_copy1);
   if (tid == TID_ERROR)
@@ -123,7 +129,7 @@ void argument_stack(char **argv, int argc, void **esp){
 static void
 start_process (void *file_name_)
 {
-  char *file_name = file_name_;
+  char *file_name = ((struct tempPCB *)file_name_)->cmd;
   struct intr_frame if_;
   bool success;  
   char *fn_copy1, *fn_copy2;  
@@ -134,11 +140,19 @@ start_process (void *file_name_)
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
 
+
   fn_copy1 = palloc_get_page (0);
   fn_copy2 = palloc_get_page (0);
   strlcpy (fn_copy1, file_name, PGSIZE);
   strlcpy (fn_copy2, file_name, PGSIZE);
   char **argv = make_argv(fn_copy1);
+  thread_current()->pcb = ((struct tempPCB *)file_name_)->_pcb;
+  thread_current()->pcb->fd_table = palloc_get_page(PAL_ZERO);
+  thread_current()->pcb->load_success = false;
+  thread_current()->pcb->next_fd = 2;
+  thread_current()->pcb->load_file = NULL;
+  list_push_back(&thread_current()->pcb->parent->child_list, &thread_current()->pcb->child_elem);
+  thread_current()->pcb->pid = (pid_t)thread_tid();
   success = load (argv[0], &if_.eip, &if_.esp);
   
   /* If load failed, quit. */
@@ -147,9 +161,9 @@ start_process (void *file_name_)
   }
 
   palloc_free_page (file_name);
-
-  thread_current()->load_success = success;
-  sema_up(&thread_current()->load);
+  palloc_free_page (fn_copy2);
+  thread_current()->pcb->load_success = success;
+  sema_up(&thread_current()->pcb->load);
 
   if (!success)
     thread_exit ();
@@ -176,12 +190,17 @@ int
 process_wait (tid_t child_tid) 
 {
   struct thread *parent = thread_current();
-  struct thread *child;
-  if (!(child = thread_get_child(child_tid)))
+  struct PCB *child;
+  printf("11111111111\n");
+  if (!(child = thread_get_child(child_tid))){
+    printf("222222222\n");
     return -1;
+  }
   sema_down(&child->wait);
+  printf("33333333333\n");
   list_remove(&child->child_elem);
-    
+  printf("4444444444444\n");
+  printf("%d\n\n", child->exit_status);
   return child->exit_status;
 }
 
@@ -210,13 +229,19 @@ process_exit (void)
       pagedir_destroy (pd);
     }
 
-  for (int fd = cur->next_fd - 1; fd >= 2; fd--)
+  for (int fd = cur->pcb->next_fd - 1; fd >= 2; fd--)
   {
+    file = cur->pcb->fd_table[fd];
     file_close(file);
-    cur->fd_table[fd] = NULL;
+    cur->pcb->fd_table[fd] = NULL;
   }
 
-  sema_up(&cur->wait);
+  if(cur->pcb->load_file){
+    file_close(cur->pcb->load_file);
+    cur->pcb->load_file = NULL;
+  }
+
+  sema_up(&cur->pcb->wait);
 }
 
 /* Sets up the CPU for running user code in the current
@@ -238,17 +263,17 @@ process_activate (void)
 int add_file(struct file *file)
 {
   struct thread *cur = thread_current();
-  int fd = cur->next_fd;
+  int fd = cur->pcb->next_fd;
 
   // add file to fd_table of current thread
   // and increment next_fd
-  cur->fd_table[fd] = file;
-  cur->next_fd++;
+  cur->pcb->fd_table[fd] = file;
+  cur->pcb->next_fd++;
 
   return fd;
 }
 
-
+
 /* We load ELF binaries.  The following definitions are taken
    from the ELF specification, [ELF1], more-or-less verbatim.  */
 
@@ -346,6 +371,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
       goto done; 
     }
 
+  t->pcb->load_file = file;
+  file_deny_write(file);
+
   /* Read and verify executable header. */
   if (file_read (file, &ehdr, sizeof ehdr) != sizeof ehdr
       || memcmp (ehdr.e_ident, "\177ELF\1\1\1", 7)
@@ -429,7 +457,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
  done:
   /* We arrive here whether the load is successful or not. */
-  file_close (file);
+  // file_close (file);
   return success;
 }
 

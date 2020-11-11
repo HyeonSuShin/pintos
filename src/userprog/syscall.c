@@ -24,6 +24,7 @@ void get_argument(void *esp, int *arg, int count){
   for(int i = 0; i < count; i ++){
     if(!check_address(esp + 4*i)) 
     {
+      printf("get ar\n");
       sys_exit(-1);
     }
     arg[i] = *(int *)(esp + 4*i);
@@ -36,6 +37,7 @@ syscall_handler (struct intr_frame *f)
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
+    printf("cehc ar\n");
     sys_exit(-1);
   }
 
@@ -48,6 +50,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_EXIT:
       get_argument(f->esp + 4, &argv[0], 1);
+      printf("name : %s, code : %d\n\n", thread_name(), (int)argv[0]);
       sys_exit((int)argv[0]);
       break;
     case SYS_EXEC:
@@ -101,6 +104,7 @@ syscall_handler (struct intr_frame *f)
       sys_close((int)argv[0]);
       break;
     default:
+      printf("default\n");
       sys_exit(-1);
   }
 }
@@ -119,7 +123,7 @@ void sys_halt (void)
 
 void sys_exit(int status)
 {
-  thread_current()->exit_status = status;
+  thread_current()->pcb->exit_status = status;
   printf("%s: exit(%d)\n", thread_current()->name, status);
   thread_exit();
 }
@@ -129,14 +133,20 @@ pid_t sys_exec(const char *cmd_line)
   pid_t pid;
   struct thread *child;
   pid = process_execute(cmd_line);
-  if (pid == -1)
+  printf("123123123123\n\n");
+  if (pid == -1){
+    printf("0000000000\n\n");
     return -1;
+  }
   child = thread_get_child(pid);
-  if (!child)
+  if (!child){
+    printf("1111111111\n\n");
     return -1;
-  sema_down(&child->load); //sema_up after load is done in start_process 
-  if (!child->load_success)
+  }
+  if (!child->pcb->load_success){
+    printf("222222222222\n\n");
     return -1;
+  }
   return pid;
 }
 
@@ -160,9 +170,10 @@ int sys_open (const char *file)
   struct file *file_ptr;
   int fd;
   
-  if (!file)
+  if (!file){
+    printf("nofile\n");
     sys_exit(-1);
-
+  }
   file_ptr = filesys_open(file);
   if (!file_ptr)
   {
@@ -176,7 +187,7 @@ int sys_open (const char *file)
 int sys_filesize (int fd)
 {
   struct thread *cur = thread_current();
-  struct file *file = cur->fd_table[fd];
+  struct file *file = cur->pcb->fd_table[fd];
 
   // if file doesn't exist, return -1
   if (!file)
@@ -192,7 +203,7 @@ int sys_read (int fd, void *buffer, unsigned size)
   struct file *file;
   lock_acquire(&file_lock);
 
-  if (fd < 0 || fd == 1 || fd >= cur->next_fd)
+  if (fd < 0 || fd == 1 || fd >= cur->pcb->next_fd)
   {
     lock_release(&file_lock);
     return -1;
@@ -209,7 +220,7 @@ int sys_read (int fd, void *buffer, unsigned size)
   }
 
   // not STDIN, store file in buffer
-  file = cur->fd_table[fd];  
+  file = cur->pcb->fd_table[fd];  
   // if can't find file, return -1
   if (!file)
   {
@@ -229,7 +240,7 @@ int sys_write (int fd, const void *buffer, unsigned size)
   struct file *file;
   lock_acquire(&file_lock);
   
-  if (fd == 0 || fd >= cur->next_fd)
+  if (fd == 0 || fd >= cur->pcb->next_fd)
   {
     lock_release(&file_lock);
     return -1;
@@ -243,7 +254,7 @@ int sys_write (int fd, const void *buffer, unsigned size)
     return size;
   }
   // not STDOUT, write to file
-  file = cur->fd_table[fd];  
+  file = cur->pcb->fd_table[fd];  
   // if can't find file, return -1
   if (!file)
   {
@@ -261,7 +272,7 @@ void sys_seek (int fd, unsigned position)
   struct thread *cur = thread_current();
   struct file *file; 
 
-  file = cur->fd_table[fd];
+  file = cur->pcb->fd_table[fd];
   if (!file) return;
 
   file_seek(file, position);
@@ -271,7 +282,7 @@ unsigned sys_tell (int fd)
 {
   struct file *file;
 
-  file = thread_current()->fd_table[fd];
+  file = thread_current()->pcb->fd_table[fd];
   ASSERT(!file);
 
   return file_tell(file);
@@ -282,13 +293,15 @@ void sys_close (int fd)
   struct file *file;
   struct thread *cur = thread_current();
 
-  if (fd >= cur->next_fd || fd<=1)
+  if (fd >= cur->pcb->next_fd || fd<=1){
+    printf("?????????\n");
     sys_exit(-1);
+  }
   
-  file = cur->fd_table[fd];
+  file = cur->pcb->fd_table[fd];
   ASSERT(file);
 
   file_close(file);
-  cur->fd_table[fd] = NULL;
-  cur->next_fd--;
+  cur->pcb->fd_table[fd] = NULL;
+  cur->pcb->next_fd--;
 }

@@ -192,11 +192,7 @@ thread_create (const char *name, int priority,
   /* Initialize thread. */
   init_thread (t, name, priority);
   tid = t->tid = allocate_tid ();
-
-  /* Allocate file descriptor */
-  t->fd_table = palloc_get_multiple (PAL_ZERO, 2);
-  if (t->fd_table == NULL)
-    return TID_ERROR;
+  
 
   /* Stack frame for kernel_thread(). */
   kf = alloc_frame (t, sizeof *kf);
@@ -619,14 +615,6 @@ init_thread (struct thread *t, const char *name, int priority)
   list_init(&t->donor_thread_list);
   t->magic = THREAD_MAGIC;
   list_init(&t->child_list);
-  sema_init(&t->load, 0);
-  sema_init(&t->wait, 0);
-  t->load_success = false;
-  t->next_fd = 2;
-  if(strcmp(name, "main"))
-  {
-    list_push_back(&thread_current()->child_list, &t->child_elem);
-  }
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
@@ -701,7 +689,7 @@ thread_schedule_tail (struct thread *prev)
   if (prev != NULL && prev->status == THREAD_DYING && prev != initial_thread) 
     {
       ASSERT (prev != cur);
-      //palloc_free_page (prev);
+      // palloc_free_page (prev);
     }
 }
 
@@ -781,16 +769,16 @@ void donate_priority(struct thread* donor, struct thread* donee){
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-struct thread *thread_get_child(tid_t child_tid)
+struct PCB *thread_get_child(tid_t child_pid)
 {
   struct list_elem *e;
-  struct thread *th;
+  struct PCB *pcb;
   struct list *child_list = &thread_current()->child_list;
   for (e = list_begin (child_list); e != list_end (child_list); e = list_next (e))
   {
-    th = list_entry(e, struct thread, child_elem);
-    if(th->tid == child_tid)
-      return th;
+    pcb = list_entry(e, struct PCB, child_elem);
+    if(pcb->pid == child_pid)
+      return pcb;
   }
   return NULL;
 }

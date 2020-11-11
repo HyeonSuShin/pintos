@@ -2,6 +2,27 @@
 #define USERPROG_PROCESS_H
 
 #include "threads/thread.h"
+#include "userprog/syscall.h"
+
+typedef int tid_t;
+
+struct PCB{
+    pid_t pid;
+    struct semaphore load;
+    struct semaphore wait;
+    int exit_status;
+    struct thread *parent;
+    struct list_elem child_elem;
+    bool load_success;
+    struct file **fd_table; // close all when process exit
+    struct file *load_file;
+    int next_fd;
+};
+
+struct tempPCB{
+    struct PCB* _pcb;
+    char *cmd;
+};
 
 static void CMD2FileName(char *);
 int find_argc(char *);

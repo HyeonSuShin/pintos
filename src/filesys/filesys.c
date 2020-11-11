@@ -46,8 +46,10 @@ bool
 filesys_create (const char *name, off_t initial_size) 
 {
   // exit when name is null
-  if (!name)
+  if (!name){
+    printf("noname\n\n");
     sys_exit(-1);
+  }
   
   block_sector_t inode_sector = 0;
   struct dir *dir = dir_open_root ();
