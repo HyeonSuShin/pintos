@@ -5,6 +5,7 @@
 #include <list.h>
 #include <stdint.h>
 #include "threads/synch.h"
+#include "userprog/process.h"
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -108,21 +109,13 @@ struct thread
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+    struct PCB *pcb;
+    struct list child_list;
 #endif
-
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
-    struct semaphore load;
-    struct semaphore wait;
-    int exit_status;
-    //struct thread *parent;
-    struct list child_list;
-    struct list_elem child_elem;
-    bool load_success;
-    struct file **fd_table; // close all when process exit
-    struct file *load_file;
-    int next_fd; 
+    
   };
 
 /* If false (default), use round-robin scheduler.
@@ -170,5 +163,5 @@ void donate_priority(struct thread* donor, struct thread* donee);
 void set_mlfqs_recent_cpu(struct thread *t);
 void set_mlfqs_priority(struct thread *t);
 
-struct thread *thread_get_child(tid_t);
+struct PCB *thread_get_child(tid_t);
 #endif /* threads/thread.h */
