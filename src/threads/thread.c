@@ -309,7 +309,9 @@ thread_exit (void)
   /* Remove thread from all threads list, set our status to dying,
      and schedule another process.  That process will destroy us
      when it calls thread_schedule_tail(). */
+  // printf("par name : %s", thread_current()->pcb->parent->name);
   intr_disable ();
+  thread_current()->pcb->die = true;
   list_remove (&thread_current()->allelem);
   thread_current()->status = THREAD_DYING;
   schedule ();

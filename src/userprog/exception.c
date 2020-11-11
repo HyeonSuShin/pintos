@@ -142,7 +142,10 @@ page_fault (struct intr_frame *f)
   intr_enable ();
 
   /* Count page faults. */
+//   printf("page_fault\n");
   page_fault_cnt++;
+
+//   printf("page_fault\n\n");
 
   /* Determine cause. */
   not_present = (f->error_code & PF_P) == 0;

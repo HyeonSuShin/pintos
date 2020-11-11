@@ -299,5 +299,8 @@ void sys_close (int fd)
 
   file_close(file);
   cur->pcb->fd_table[fd] = NULL;
+  for(int i = fd; i < cur->pcb->next_fd; i++){
+    cur->pcb->fd_table[i] = cur->pcb->fd_table[i + 1];
+  }
   cur->pcb->next_fd--;
 }

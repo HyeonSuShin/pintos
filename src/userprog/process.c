@@ -146,8 +146,8 @@ start_process (void *file_name_)
   if_.eflags = FLAG_IF | FLAG_MBS;
 
 
-  fn_copy1 = palloc_get_page (0);
-  fn_copy2 = palloc_get_page (0);
+  fn_copy1 = palloc_get_page (PAL_ZERO);
+  fn_copy2 = palloc_get_page (PAL_ZERO);
   strlcpy (fn_copy1, file_name, PGSIZE);
   strlcpy (fn_copy2, file_name, PGSIZE);
   char **argv = make_argv(fn_copy1);
@@ -155,7 +155,6 @@ start_process (void *file_name_)
   thread_current()->pcb->fd_table = palloc_get_page(PAL_ZERO);
   if (!thread_current()->pcb->fd_table)
   {
-    // palloc_free_page(thread_current()->pcb->fd_table);
     sys_exit(-1);
   }
   thread_current()->pcb->load_success = false;
@@ -163,6 +162,7 @@ start_process (void *file_name_)
   thread_current()->pcb->load_file = NULL;
   list_push_back(&thread_current()->pcb->parent->child_list, &thread_current()->pcb->child_elem);
   thread_current()->pcb->pid = (pid_t)thread_tid();
+  thread_current()->pcb->die = false;
   success = load (argv[0], &if_.eip, &if_.esp);
   
   /* If load failed, quit. */
@@ -170,6 +170,8 @@ start_process (void *file_name_)
     argument_stack(argv, find_argc(fn_copy2), &if_.esp);
   }
 
+  palloc_free_page(fn_copy1);
+  palloc_free_page(file_name);
   palloc_free_page (fn_copy2);
   thread_current()->pcb->load_success = success;
   sema_up(&thread_current()->pcb->load);
@@ -204,10 +206,15 @@ process_wait (tid_t child_tid)
   if (!(child = thread_get_child(child_tid))){
     return -1;
   }
+  // printf("child : %d\n\n", child->pid);
   sema_down(&child->wait);
+  // printf("2?? : %d\n\n", child->wait);
   list_remove(&child->child_elem);
+  int exit = child->exit_status;
+  palloc_free_page(child->fd_table);
   // printf("%d\n\n", child->exit_status);
-  return child->exit_status;
+  palloc_free_page(child);
+  return exit;
 }
 
 /* Free the current process's resources. */
@@ -248,7 +255,29 @@ process_exit (void)
     cur->pcb->load_file = NULL;
   }
 
-  sema_up(&cur->pcb->wait);
+  // printf("111111111\n");
+  if(!thread_current()->pcb->parent && thread_current()->pcb->die == false){
+    // printf("no par\n");
+    palloc_free_page(thread_current()->pcb->fd_table);
+    palloc_free_page(thread_current()->pcb);
+  }
+  // printf("22222222222\n");
+  // printf("%d\n\n", list_size(&thread_current()->child_list));
+  for(struct list_elem *e = list_begin(&thread_current()->child_list); e != list_end(&thread_current()->child_list);){
+    // printf("have child\n");
+    struct PCB* pcb_ = list_entry(e, struct PCB, child_elem);
+    e = list_remove(e);
+    if(pcb_->die == true){
+      palloc_free_page(pcb_->fd_table);
+      palloc_free_page(pcb_);
+    } else{
+      pcb_->parent = NULL;
+    }
+  }
+
+  // printf("1?? : %d\n\n", thread_current()->pcb->pid);
+  sema_up(&thread_current()->pcb->wait);
+  // printf("2?? : %d\n\n", thread_current()->pcb->wait);
 }
 
 /* Sets up the CPU for running user code in the current

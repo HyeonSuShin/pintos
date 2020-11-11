@@ -14,6 +14,7 @@ struct PCB{
     struct thread *parent;
     struct list_elem child_elem;
     bool load_success;
+    bool die;
     struct file **fd_table; // close all when process exit
     struct file *load_file;
     int next_fd;
