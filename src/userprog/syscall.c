@@ -131,7 +131,7 @@ void sys_exit(int status)
 pid_t sys_exec(const char *cmd_line)
 {
   pid_t pid;
-  struct thread *child;
+  struct PCB *child;
   pid = process_execute(cmd_line);
   if (pid == -1){
     return -1;
@@ -140,7 +140,7 @@ pid_t sys_exec(const char *cmd_line)
   if (!child){
     return -1;
   }
-  if (child->pcb && !child->pcb->load_success){
+  if (child && !child->load_success){
     return -1;
   }
   return pid;

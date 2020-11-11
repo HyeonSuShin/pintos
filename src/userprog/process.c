@@ -155,7 +155,7 @@ start_process (void *file_name_)
   thread_current()->pcb->fd_table = palloc_get_page(PAL_ZERO);
   if (!thread_current()->pcb->fd_table)
   {
-    palloc_free_page(thread_current()->pcb->fd_table);
+    // palloc_free_page(thread_current()->pcb->fd_table);
     sys_exit(-1);
   }
   thread_current()->pcb->load_success = false;
@@ -174,8 +174,9 @@ start_process (void *file_name_)
   thread_current()->pcb->load_success = success;
   sema_up(&thread_current()->pcb->load);
 
-  if (!success)
+  if (!success){
     thread_exit ();
+    }
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -216,6 +217,7 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
   struct file *file;
+
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
