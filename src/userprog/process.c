@@ -170,7 +170,6 @@ start_process (void *file_name_)
     argument_stack(argv, find_argc(fn_copy2), &if_.esp);
   }
 
-  palloc_free_page (file_name);
   palloc_free_page (fn_copy2);
   thread_current()->pcb->load_success = success;
   sema_up(&thread_current()->pcb->load);
@@ -201,16 +200,12 @@ process_wait (tid_t child_tid)
 {
   struct thread *parent = thread_current();
   struct PCB *child;
-  printf("11111111111\n");
   if (!(child = thread_get_child(child_tid))){
-    printf("222222222\n");
     return -1;
   }
   sema_down(&child->wait);
-  printf("33333333333\n");
   list_remove(&child->child_elem);
-  printf("4444444444444\n");
-  printf("%d\n\n", child->exit_status);
+  // printf("%d\n\n", child->exit_status);
   return child->exit_status;
 }
 

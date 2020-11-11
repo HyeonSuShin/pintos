@@ -24,7 +24,7 @@ void get_argument(void *esp, int *arg, int count){
   for(int i = 0; i < count; i ++){
     if(!check_address(esp + 4*i)) 
     {
-      printf("get ar\n");
+      // printf("get ar\n");
       sys_exit(-1);
     }
     arg[i] = *(int *)(esp + 4*i);
@@ -37,7 +37,7 @@ syscall_handler (struct intr_frame *f)
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
-    printf("cehc ar\n");
+    // printf("cehc ar\n");
     sys_exit(-1);
   }
 
@@ -50,7 +50,7 @@ syscall_handler (struct intr_frame *f)
       break;
     case SYS_EXIT:
       get_argument(f->esp + 4, &argv[0], 1);
-      printf("name : %s, code : %d\n\n", thread_name(), (int)argv[0]);
+      // printf("name : %s, code : %d\n\n", thread_name(), (int)argv[0]);
       sys_exit((int)argv[0]);
       break;
     case SYS_EXEC:
@@ -104,7 +104,7 @@ syscall_handler (struct intr_frame *f)
       sys_close((int)argv[0]);
       break;
     default:
-      printf("default\n");
+      // printf("default\n");
       sys_exit(-1);
   }
 }
@@ -133,18 +133,14 @@ pid_t sys_exec(const char *cmd_line)
   pid_t pid;
   struct thread *child;
   pid = process_execute(cmd_line);
-  printf("123123123123\n\n");
   if (pid == -1){
-    printf("0000000000\n\n");
     return -1;
   }
   child = thread_get_child(pid);
   if (!child){
-    printf("1111111111\n\n");
     return -1;
   }
-  if (!child->pcb->load_success){
-    printf("222222222222\n\n");
+  if (child->pcb && !child->pcb->load_success){
     return -1;
   }
   return pid;
@@ -171,7 +167,7 @@ int sys_open (const char *file)
   int fd;
   
   if (!file){
-    printf("nofile\n");
+    // printf("nofile\n");
     sys_exit(-1);
   }
   file_ptr = filesys_open(file);
@@ -294,7 +290,7 @@ void sys_close (int fd)
   struct thread *cur = thread_current();
 
   if (fd >= cur->pcb->next_fd || fd<=1){
-    printf("?????????\n");
+    // printf("?????????\n");
     sys_exit(-1);
   }
   

@@ -47,7 +47,7 @@ filesys_create (const char *name, off_t initial_size)
 {
   // exit when name is null
   if (!name){
-    printf("noname\n\n");
+    // printf("noname\n\n");
     sys_exit(-1);
   }
   
