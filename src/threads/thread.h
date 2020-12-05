@@ -4,6 +4,7 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include <hash.h>
 #include "threads/synch.h"
 #include "userprog/process.h"
 
@@ -111,6 +112,7 @@ struct thread
     uint32_t *pagedir;                  /* Page directory. */
     struct PCB *pcb;
     struct list child_list;
+    struct hash spt; //supplemental page table
 #endif
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */

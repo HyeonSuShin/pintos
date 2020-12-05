@@ -3,19 +3,26 @@
 
 #include <hash.h>
 #include <stdbool.h>
+#include "filesys/off_t.h"
 
-struct page{
-  void *vaddr;
-  size_t offset;
-  size_t size;
-  size_t zero_size;
-  bool writable;
+#define PAGE_BIN_FILE 0
+#define PAGE_FRAME    1
+#define PAGE_ANON     2
+
+//supplemental page table entry
+struct spte{
   struct file *file;
+  off_t ofs;
+  uint32_t read_bytes;
+  uint32_t zero_bytes;
+  bool writable;
+  void *vaddr;
   int type;
   struct hash_elem hash_elem;
 };
 
-unsigned page_hash_func(struct hash_elem *elem, void *aux);
-bool page_less_func(const struct hash_elem *a, const struct hash_elem *b, void *aux);
+void sptable_init(struct hash* spt);
+void sptable_delete(struct hash *spt, struct spte *entry);
+struct spte* make_spt_entry(struct hash *spt, struct file *file, off_t ofs, uint8_t *upage, uint32_t read_bytes, uint32_t zero_bytes, bool writable, int type);
 
 #endif

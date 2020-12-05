@@ -6,14 +6,15 @@
 #include <list.h>
 #include "vm/page.h"
 
-struct ft_entry{
+//frame table entry
+struct fte{
   void *paddr;
   struct page *page;
   struct list_elem elem;
 };
 
 void ftable_init();
-void *falloc_get_page(enum palloc_flags, struct page *page);
+void *falloc_get_page(enum palloc_flags, struct spte *page);
 void falloc_free_page(void *paddr);
 
 #endif

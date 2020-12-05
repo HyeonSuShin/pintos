@@ -158,6 +158,7 @@ start_process (void *file_name_)
   {
     sys_exit(-1);
   }
+  sptable_init(&thread_current()->spt);
   thread_current()->pcb->load_success = false;
   thread_current()->pcb->next_fd = 2;
   thread_current()->pcb->load_file = NULL;
@@ -578,14 +579,19 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
       size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
+      struct spte* pt_entry = make_spt_entry(&thread_current()->spt, file, ofs, upage, read_bytes, zero_bytes, writable, PAGE_FRAME);
+
       /* Get a page of memory. */
-      uint8_t *kpage = falloc_get_page (PAL_USER, NULL);
-      if (kpage == NULL)
+      uint8_t *kpage = falloc_get_page (PAL_USER, pt_entry);
+      if (kpage == NULL){
+        sptable_delete(&thread_current()->spt, pt_entry);
         return false;
+      }
 
       /* Load this page. */
       if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
         {
+          sptable_delete(&thread_current()->spt, pt_entry);
           falloc_free_page (kpage);
           return false; 
         }
@@ -594,6 +600,7 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       /* Add the page to the process's address space. */
       if (!install_page (upage, kpage, writable)) 
         {
+          sptable_delete(&thread_current()->spt, pt_entry);
           falloc_free_page (kpage);
           return false; 
         }
@@ -614,14 +621,17 @@ setup_stack (void **esp)
   uint8_t *kpage;
   bool success = false;
 
-  kpage = falloc_get_page (PAL_USER | PAL_ZERO, NULL);
+  struct spte* pt_entry = make_spt_entry(&thread_current()->spt, NULL, 0, ((uint8_t *) PHYS_BASE) - PGSIZE, 0, 0, true, PAGE_FRAME);
+  kpage = falloc_get_page (PAL_USER | PAL_ZERO, pt_entry);
   if (kpage != NULL) 
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success)
         *esp = PHYS_BASE;
-      else
+      else{
+        sptable_delete(&thread_current()->spt, pt_entry);
         falloc_free_page (kpage);
+      }
     }
   return success;
 }
