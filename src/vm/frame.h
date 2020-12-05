@@ -2,19 +2,18 @@
 #define VM_FRAME_H
 
 #include "threads/thread.h"
+#include "threads/palloc.h"
+#include <list.h>
+#include "vm/page.h"
 
 struct ft_entry{
-  void *key;
-  void *entry;
-  struct thread *owner;
+  void *paddr;
+  struct page *page;
+  struct list_elem elem;
 };
 
-static void ftable_init(struct hash*);
-static unsigned ftable_hash(struct hash_elem*, void*);
-void ftable_insert(struct hash*, struct ft_entry*);
-void ftable_delete(struct hash*, struct ft_entry*);
-struct ft_entry* ftable_find(struct hash*, void* key);
-struct 
-
+void ftable_init();
+void *falloc_get_page(enum palloc_flags, struct page *page);
+void falloc_free_page(void *paddr);
 
 #endif
