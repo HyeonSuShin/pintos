@@ -113,6 +113,7 @@ struct thread
     struct PCB *pcb;
     struct list child_list;
     struct hash spt; //supplemental page table
+    void *esp;
 #endif
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */

@@ -151,6 +151,7 @@ page_fault (struct intr_frame *f)
   user = (f->error_code & PF_U) != 0;
 
 //   sys_exit(-1);
+   thread_current()->esp = user ? f->esp : thread_current()->esp;
 
    if(page_fault_handler(fault_addr)){
       return;

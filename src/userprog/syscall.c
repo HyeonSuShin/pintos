@@ -34,6 +34,7 @@ void get_argument(void *esp, int *arg, int count){
 static void
 syscall_handler (struct intr_frame *f) 
 {
+  thread_current()->esp = f->esp;
   // if address is invalid, exit program
   if (!check_address(f->esp))
   {
