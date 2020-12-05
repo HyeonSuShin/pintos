@@ -27,7 +27,6 @@ bool page_fault_handler(void *addr){
   struct spte *pt_entry = sptable_find(page);
   bool locked = lock_held_by_current_thread(&file_lock);
   bool is_growth = is_stack_growth(thread_current()->esp, addr);
-  // printf("********** Hello page_fault_handler **********\n");
 
   if(pt_entry == NULL && !is_growth){
     return false;
@@ -37,7 +36,6 @@ bool page_fault_handler(void *addr){
     uint8_t *kpage = falloc_get_page(PAL_USER | PAL_ZERO, pt_entry);
     make_spt_entry(&thread_current()->spt, NULL, 0, page, 0, 0, true, PAGE_FRAME);
     if (kpage == NULL){
-      // printf("********** kpage is NULL **********\n");
       sptable_delete(&thread_current()->spt, pt_entry);
       return false;
     }

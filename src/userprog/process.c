@@ -161,6 +161,8 @@ start_process (void *file_name_)
   sptable_init(&thread_current()->spt);
   thread_current()->pcb->load_success = false;
   thread_current()->pcb->next_fd = 2;
+  thread_current()->mmapid = 0;
+  list_init(&thread_current()->mmap_list);
   thread_current()->pcb->load_file = NULL;
   list_push_back(&thread_current()->pcb->parent->child_list, &thread_current()->pcb->child_elem);
   thread_current()->pcb->pid = (pid_t)thread_tid();
@@ -227,6 +229,9 @@ process_exit (void)
   uint32_t *pd;
   struct file *file;
 
+  for(mapid_t mapid = 0; mapid < cur->mmapid; mapid++){
+    sys_munmap(mapid);
+  }
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -581,29 +586,6 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 
       struct spte* pt_entry = make_spt_entry(&thread_current()->spt, file, ofs, upage, page_read_bytes, page_zero_bytes, writable, PAGE_BIN_FILE);
       ofs += PGSIZE;
-      /* Get a page of memory. */
-      // uint8_t *kpage = falloc_get_page (PAL_USER, pt_entry);
-      // if (kpage == NULL){
-      //   sptable_delete(&thread_current()->spt, pt_entry);
-      //   return false;
-      // }
-
-      // /* Load this page. */
-      // if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
-      //   {
-      //     sptable_delete(&thread_current()->spt, pt_entry);
-      //     falloc_free_page (kpage);
-      //     return false; 
-      //   }
-      // memset (kpage + page_read_bytes, 0, page_zero_bytes);
-
-      // /* Add the page to the process's address space. */
-      // if (!install_page (upage, kpage, writable)) 
-      //   {
-      //     sptable_delete(&thread_current()->spt, pt_entry);
-      //     falloc_free_page (kpage);
-      //     return false; 
-      //   }
 
       /* Advance. */
       read_bytes -= page_read_bytes;

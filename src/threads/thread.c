@@ -784,3 +784,23 @@ struct PCB *thread_get_child(tid_t child_pid)
   }
   return NULL;
 }
+
+struct mmap_file *mmap_init(mapid_t mmapid, struct file *file, void *vaddr){
+  struct mmap_file *mfile = (struct mmap_file *)malloc(sizeof(struct mmap_file));
+  // sptable_init(&mfile->file_pages);
+  mfile->mmapid = mmapid;
+  mfile->file = file;
+  mfile->vaddr = vaddr;
+  for(off_t ofs = 0; ofs < file_length(file); ofs += PGSIZE){
+    if(sptable_find(vaddr + ofs)){
+      return NULL;
+    }
+  }
+  for(off_t ofs = 0; ofs < file_length(file); ofs += PGSIZE){
+    uint32_t read_bytes = ofs + PGSIZE < file_length(file) ? PGSIZE : file_length(file) - ofs;
+    struct spte *entry = make_spt_entry(&thread_current()->spt, file, ofs, vaddr, read_bytes, PGSIZE - read_bytes, true, PAGE_BIN_FILE);
+    vaddr += PGSIZE;
+  }
+  list_push_back(&thread_current()->mmap_list, &mfile->mmap_elem);
+  return mfile;
+}

@@ -5,10 +5,13 @@
 #include <list.h>
 #include <stdint.h>
 #include <hash.h>
+#include "userprog/syscall.h"
 #include "threads/synch.h"
 #include "userprog/process.h"
+#include "vm/frame.h"
 
 /* States in a thread's life cycle. */
+typedef int mapid_t;
 enum thread_status
   {
     THREAD_RUNNING,     /* Running thread. */
@@ -20,6 +23,7 @@ enum thread_status
 /* Thread identifier type.
    You can redefine this to whatever type you like. */
 typedef int tid_t;
+// typedef int mapid_t;
 #define TID_ERROR ((tid_t) -1)          /* Error value for tid_t. */
 
 /* Thread priorities. */
@@ -114,12 +118,22 @@ struct thread
     struct list child_list;
     struct hash spt; //supplemental page table
     void *esp;
+    struct list mmap_list;
+    mapid_t mmapid;
 #endif
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
 
     
   };
+
+struct mmap_file{
+   mapid_t mmapid;
+   struct file *file;
+   struct list_elem mmap_elem;
+   // struct hash file_pages;
+   void *vaddr;
+};
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -167,4 +181,7 @@ void set_mlfqs_recent_cpu(struct thread *t);
 void set_mlfqs_priority(struct thread *t);
 
 struct PCB *thread_get_child(tid_t);
+
+/* mmap functions */
+struct mmap_file *mmap_init(mapid_t mmapid, struct file *file, void *vaddr);
 #endif /* threads/thread.h */

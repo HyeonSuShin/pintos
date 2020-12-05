@@ -104,6 +104,14 @@ syscall_handler (struct intr_frame *f)
       get_argument(f->esp + 4, &argv[0], 1);
       sys_close((int)argv[0]);
       break;
+    case SYS_MMAP:
+      get_argument(f->esp + 4, &argv[0], 2);
+      f->eax = sys_mmap((int)argv[0], (void*)argv[1]);
+      break;
+    case SYS_MUNMAP:
+      get_argument(f->esp + 4, &argv[0], 1);
+      sys_munmap((int)argv[0]);
+      break;
     default:
       // printf("default\n");
       sys_exit(-1);
@@ -304,4 +312,69 @@ void sys_close (int fd)
     cur->pcb->fd_table[i] = cur->pcb->fd_table[i + 1];
   }
   cur->pcb->next_fd--;
+}
+
+mapid_t sys_mmap(int fd, void *addr){
+  struct thread *cur = thread_current();
+  struct file *file = cur->pcb->fd_table[fd];
+  if(file == NULL){
+    // printf("********* file null ***********\n");
+    return -1;
+  }
+  if((int)addr % PGSIZE != 0 || !addr){
+    // printf("********* addr not align ***********\n");
+    return -1;
+  }
+
+  struct file *fork_file = file_reopen(file);
+  if(fork_file == NULL){
+    // printf("********* fork file null ***********\n");
+    return -1;
+  }
+
+  struct mmap_file *mfile = mmap_init(cur->mmapid++, fork_file, addr);
+  if(mfile == NULL){
+    // printf("********* mfile null ***********\n");
+    return -1;
+  }
+
+  return mfile->mmapid;
+}
+
+void sys_munmap(mapid_t mapid){
+  struct thread *cur = thread_current();
+  struct list_elem *e;
+  struct mmap_file *mfile;
+  void *vaddr;
+  if(mapid >= cur->mmapid){
+    return;
+  }
+
+  for(e = list_begin(&cur->mmap_list); e != list_end(&cur->mmap_list); e = list_next(e)){
+    mfile = list_entry(e, struct mmap_file, mmap_elem);
+    if(mfile->mmapid == mapid){
+      break;
+    }
+  }
+  if(e == list_end(&cur->mmap_list)){
+    return;
+  }
+
+  vaddr = mfile->vaddr;
+
+  lock_acquire(&file_lock);
+
+  for(off_t ofs = 0; ofs < file_length(mfile->file); ofs += PGSIZE){
+    struct spte *entry = sptable_find(vaddr);
+    if (pagedir_is_dirty(cur->pagedir, vaddr))
+    {
+      void *kaddr = pagedir_get_page(cur->pagedir, vaddr);
+      file_write_at(entry->file, kaddr, entry->read_bytes, entry->ofs);
+    }
+    sptable_delete(&cur->spt, entry);
+    vaddr += PGSIZE;
+  }
+  list_remove(e);
+
+  lock_release(&file_lock);
 }
