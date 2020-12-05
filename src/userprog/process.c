@@ -498,7 +498,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   // file_close (file);
   return success;
 }
-
+
 /* load() helpers. */
 
 static bool install_page (void *upage, void *kpage, bool writable);
@@ -579,31 +579,31 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
       size_t page_read_bytes = read_bytes < PGSIZE ? read_bytes : PGSIZE;
       size_t page_zero_bytes = PGSIZE - page_read_bytes;
 
-      struct spte* pt_entry = make_spt_entry(&thread_current()->spt, file, ofs, upage, read_bytes, zero_bytes, writable, PAGE_FRAME);
-
+      struct spte* pt_entry = make_spt_entry(&thread_current()->spt, file, ofs, upage, page_read_bytes, page_zero_bytes, writable, PAGE_BIN_FILE);
+      ofs += PGSIZE;
       /* Get a page of memory. */
-      uint8_t *kpage = falloc_get_page (PAL_USER, pt_entry);
-      if (kpage == NULL){
-        sptable_delete(&thread_current()->spt, pt_entry);
-        return false;
-      }
+      // uint8_t *kpage = falloc_get_page (PAL_USER, pt_entry);
+      // if (kpage == NULL){
+      //   sptable_delete(&thread_current()->spt, pt_entry);
+      //   return false;
+      // }
 
-      /* Load this page. */
-      if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
-        {
-          sptable_delete(&thread_current()->spt, pt_entry);
-          falloc_free_page (kpage);
-          return false; 
-        }
-      memset (kpage + page_read_bytes, 0, page_zero_bytes);
+      // /* Load this page. */
+      // if (file_read (file, kpage, page_read_bytes) != (int) page_read_bytes)
+      //   {
+      //     sptable_delete(&thread_current()->spt, pt_entry);
+      //     falloc_free_page (kpage);
+      //     return false; 
+      //   }
+      // memset (kpage + page_read_bytes, 0, page_zero_bytes);
 
-      /* Add the page to the process's address space. */
-      if (!install_page (upage, kpage, writable)) 
-        {
-          sptable_delete(&thread_current()->spt, pt_entry);
-          falloc_free_page (kpage);
-          return false; 
-        }
+      // /* Add the page to the process's address space. */
+      // if (!install_page (upage, kpage, writable)) 
+      //   {
+      //     sptable_delete(&thread_current()->spt, pt_entry);
+      //     falloc_free_page (kpage);
+      //     return false; 
+      //   }
 
       /* Advance. */
       read_bytes -= page_read_bytes;

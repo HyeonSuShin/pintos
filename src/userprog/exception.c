@@ -142,17 +142,20 @@ page_fault (struct intr_frame *f)
   intr_enable ();
 
   /* Count page faults. */
-//   printf("page_fault\n");
   page_fault_cnt++;
 
-//   printf("page_fault\n\n");
 
   /* Determine cause. */
   not_present = (f->error_code & PF_P) == 0;
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
-  sys_exit(-1);
+//   sys_exit(-1);
+
+   if(page_fault_handler(fault_addr)){
+      return;
+   }
+   sys_exit(-1);
 
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to

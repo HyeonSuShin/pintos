@@ -6,7 +6,6 @@ static struct lock frame_lock;
 
 static void ftable_insert(struct fte*);
 static void ftable_delete(struct fte*);
-static struct fte* ftable_find(void*);
 static void make_ft_entry(void *paddr, struct spte *page);
 
 void ftable_init(){
@@ -30,21 +29,21 @@ void falloc_free_page(void *paddr){
   lock_release(&frame_lock);
 }
 
-static void ftable_insert(struct fte* entry){
-  list_push_back(&ft, &entry->elem);
-}
-
-static void ftable_delete(struct fte* entry){
-  list_remove(&entry->elem);
-}
-
-static struct fte* ftable_find(void* key){
+struct fte* ftable_find(void* key){
   for (struct list_elem *e = list_begin(&ft);e!=list_end(&ft);e=list_next(e)){
     if (list_entry(e, struct fte, elem)->paddr == key){
       return list_entry(e, struct fte, elem);
     }
   }
   return NULL;
+}
+
+static void ftable_insert(struct fte* entry){
+  list_push_back(&ft, &entry->elem);
+}
+
+static void ftable_delete(struct fte* entry){
+  list_remove(&entry->elem);
 }
 
 static void make_ft_entry(void *paddr, struct spte *page){

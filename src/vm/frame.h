@@ -16,5 +16,6 @@ struct fte{
 void ftable_init();
 void *falloc_get_page(enum palloc_flags, struct spte *page);
 void falloc_free_page(void *paddr);
+struct fte* ftable_find(void*);
 
 #endif
