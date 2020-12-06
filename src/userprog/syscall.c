@@ -345,7 +345,6 @@ void sys_munmap(mapid_t mapid){
   if(mapid >= cur->mmapid){
     return;
   }
-
   for(e = list_begin(&cur->mmap_list); e != list_end(&cur->mmap_list); e = list_next(e)){
     mfile = list_entry(e, struct mmap_file, mmap_elem);
     if(mfile->mmapid == mapid){
@@ -362,10 +361,17 @@ void sys_munmap(mapid_t mapid){
 
   for(off_t ofs = 0; ofs < file_length(mfile->file); ofs += PGSIZE){
     struct spte *entry = sptable_find(vaddr);
-    if (pagedir_is_dirty(cur->pagedir, vaddr))
-    {
+    if(entry->type == PAGE_ANON){
+      if(!page_fault_handler(vaddr)){
+        sys_exit(-1);
+      }
+    }
+    if(entry->type == PAGE_FRAME){
       void *kaddr = pagedir_get_page(cur->pagedir, vaddr);
-      file_write_at(entry->file, kaddr, entry->read_bytes, entry->ofs);
+      if (pagedir_is_dirty(cur->pagedir, vaddr)){
+        file_write_at(entry->file, kaddr, entry->read_bytes, entry->ofs);
+      }
+      falloc_free_page(kaddr);
     }
     sptable_delete(&cur->spt, entry);
     vaddr += PGSIZE;

@@ -23,5 +23,6 @@ struct fte* ftable_find(void*);
 void evict();
 struct fte* get_page_to_evict();
 struct fte* next_clock_hand();
+void fte_destroy_by_holder(struct thread *t);
 
 #endif

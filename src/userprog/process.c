@@ -232,6 +232,7 @@ process_exit (void)
   for(mapid_t mapid = 0; mapid < cur->mmapid; mapid++){
     sys_munmap(mapid);
   }
+  fte_destroy_by_holder(cur);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -611,8 +612,8 @@ setup_stack (void **esp)
       if (success)
         *esp = PHYS_BASE;
       else{
-        sptable_delete(&thread_current()->spt, pt_entry);
         falloc_free_page (kpage);
+        sptable_delete(&thread_current()->spt, pt_entry);
       }
     }
   return success;

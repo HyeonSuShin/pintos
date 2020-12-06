@@ -3,6 +3,7 @@
 
 #include "threads/thread.h"
 #include "userprog/syscall.h"
+#include "vm/frame.h"
 
 typedef int tid_t;
 

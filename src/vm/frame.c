@@ -92,3 +92,14 @@ struct fte* next_clock_hand(){
   }
   return list_entry(e, struct fte, elem);
 }
+
+void fte_destroy_by_holder(struct thread *t){
+  lock_acquire(&frame_lock);
+  for (struct list_elem *e = list_begin(&ft); e!=list_end(&ft); e=list_next(e)){
+    struct fte *entry = list_entry(e, struct fte, elem);
+    if (entry->holder == t) {
+      ftable_delete(entry);
+    }
+  }
+  lock_release(&frame_lock);
+}

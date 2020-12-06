@@ -41,8 +41,8 @@ bool page_fault_handler(void *addr){
       return false;
     }
     if (!install_page(page, kpage, true)){
-      sptable_delete(&thread_current()->spt, pt_entry);
       falloc_free_page (kpage);
+      sptable_delete(&thread_current()->spt, pt_entry);
       return false;
     }
     return true;
@@ -57,8 +57,8 @@ bool page_fault_handler(void *addr){
   if(pt_entry->type == PAGE_ANON){
     swap_in(pt_entry->idx, kpage);
     if (!install_page(pt_entry->vaddr, kpage, pt_entry->writable)){
-      sptable_delete(&thread_current()->spt, pt_entry);
       falloc_free_page (kpage);
+      sptable_delete(&thread_current()->spt, pt_entry);
       return false;
     }
     pagedir_set_dirty(thread_current()->pagedir, pt_entry->vaddr, true);
@@ -73,8 +73,8 @@ bool page_fault_handler(void *addr){
 
   if (file_read_at(pt_entry->file, kpage, pt_entry->read_bytes, pt_entry->ofs) != (int) pt_entry->read_bytes){
     lock_release(&file_lock);
-    sptable_delete(&thread_current()->spt, pt_entry);
     falloc_free_page (kpage);
+    sptable_delete(&thread_current()->spt, pt_entry);
     return false; 
   }
   memset(kpage + pt_entry->read_bytes, 0, pt_entry->zero_bytes);
@@ -84,8 +84,8 @@ bool page_fault_handler(void *addr){
   }
 
   if (!install_page(pt_entry->vaddr, kpage, pt_entry->writable)){
-    sptable_delete(&thread_current()->spt, pt_entry);
     falloc_free_page (kpage);
+    sptable_delete(&thread_current()->spt, pt_entry);
     return false; 
   }
 
