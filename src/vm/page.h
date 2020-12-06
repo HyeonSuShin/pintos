@@ -17,6 +17,7 @@ struct spte{
   off_t ofs;
   uint32_t read_bytes;
   uint32_t zero_bytes;
+  uint32_t idx;
   bool writable;
   void *vaddr;
   int type;

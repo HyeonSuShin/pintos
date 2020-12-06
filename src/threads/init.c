@@ -127,7 +127,7 @@ main (void)
   locate_block_devices ();
   filesys_init (format_filesys);
 #endif
-
+  swap_init();
   ftable_init();
 
   printf ("Boot complete.\n");

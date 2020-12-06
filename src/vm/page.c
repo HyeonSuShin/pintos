@@ -32,6 +32,7 @@ bool page_fault_handler(void *addr){
     return false;
   }
 
+
   if(is_growth){
     uint8_t *kpage = falloc_get_page(PAL_USER | PAL_ZERO, pt_entry);
     make_spt_entry(&thread_current()->spt, NULL, 0, page, 0, 0, true, PAGE_FRAME);
@@ -42,7 +43,7 @@ bool page_fault_handler(void *addr){
     if (!install_page(page, kpage, true)){
       sptable_delete(&thread_current()->spt, pt_entry);
       falloc_free_page (kpage);
-      return false; 
+      return false;
     }
     return true;
   }
@@ -51,6 +52,20 @@ bool page_fault_handler(void *addr){
   if (kpage == NULL){
     sptable_delete(&thread_current()->spt, pt_entry);
     return false;
+  }
+
+  if(pt_entry->type == PAGE_ANON){
+    printf("swap in\n");
+    swap_in(pt_entry->idx, kpage);
+    if (!install_page(pt_entry->vaddr, kpage, pt_entry->writable)){
+      sptable_delete(&thread_current()->spt, pt_entry);
+      falloc_free_page (kpage);
+      return false;
+    }
+    pagedir_set_dirty(thread_current()->pagedir, pt_entry->vaddr, true);
+
+    pt_entry->type = PAGE_FRAME;
+    return true;
   }
 
   if (!locked){
@@ -76,7 +91,6 @@ bool page_fault_handler(void *addr){
   }
 
   pt_entry->type = PAGE_FRAME;
-
   return true;
 }
 

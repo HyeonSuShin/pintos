@@ -318,23 +318,19 @@ mapid_t sys_mmap(int fd, void *addr){
   struct thread *cur = thread_current();
   struct file *file = cur->pcb->fd_table[fd];
   if(file == NULL){
-    // printf("********* file null ***********\n");
     return -1;
   }
   if((int)addr % PGSIZE != 0 || !addr){
-    // printf("********* addr not align ***********\n");
     return -1;
   }
 
   struct file *fork_file = file_reopen(file);
   if(fork_file == NULL){
-    // printf("********* fork file null ***********\n");
     return -1;
   }
 
   struct mmap_file *mfile = mmap_init(cur->mmapid++, fork_file, addr);
   if(mfile == NULL){
-    // printf("********* mfile null ***********\n");
     return -1;
   }
 
