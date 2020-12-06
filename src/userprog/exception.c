@@ -150,15 +150,16 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
-//   sys_exit(-1);
-   thread_current()->esp = user ? f->esp : thread_current()->esp;
+  if (!not_present)
+    sys_exit(-1);
 
-   if(page_fault_handler(fault_addr)){
-      return;
-   }
+  thread_current()->esp = user ? f->esp : thread_current()->esp;
+
+  if(page_fault_handler(fault_addr)){
+    return;
+  }
    
-   printf("***** page_fault() : load failed at %p (%d %d %d) *****\n", fault_addr, not_present, write, user);
-   sys_exit(-1);
+  sys_exit(-1);
 
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to
@@ -170,4 +171,3 @@ page_fault (struct intr_frame *f)
           user ? "user" : "kernel");
   kill (f);
 }
-

@@ -77,7 +77,6 @@ struct fte* get_page_to_evict(){
   do{
     e = next_clock_hand();
     if(!pagedir_is_accessed(e->holder->pagedir, e->page->vaddr)){
-      clock_hand = list_entry(list_next(&e->elem), struct fte, elem);
       return e;
     }
     pagedir_set_accessed(e->holder->pagedir, e->page->vaddr, false);

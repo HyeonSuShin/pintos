@@ -33,7 +33,7 @@ bool page_fault_handler(void *addr){
   }
 
 
-  if(is_growth){
+  if(pt_entry == NULL && is_growth){
     uint8_t *kpage = falloc_get_page(PAL_USER | PAL_ZERO, pt_entry);
     make_spt_entry(&thread_current()->spt, NULL, 0, page, 0, 0, true, PAGE_FRAME);
     if (kpage == NULL){
@@ -55,7 +55,6 @@ bool page_fault_handler(void *addr){
   }
 
   if(pt_entry->type == PAGE_ANON){
-    printf("swap in\n");
     swap_in(pt_entry->idx, kpage);
     if (!install_page(pt_entry->vaddr, kpage, pt_entry->writable)){
       sptable_delete(&thread_current()->spt, pt_entry);
