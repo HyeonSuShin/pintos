@@ -8,6 +8,7 @@
         "limits": "c",
         "sstream": "c",
         "streambuf": "c",
-        "atomic": "c"
+        "atomic": "c",
+        "string_view": "c"
     }
 }
