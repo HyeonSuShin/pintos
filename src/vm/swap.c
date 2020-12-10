@@ -36,10 +36,7 @@ void swap_out(void *kaddr){
   int i;
   lock_acquire(&swap_lock);
   struct spte *entry = ftable_find(kaddr)->page;
-  if(!entry){
-    lock_release(&swap_lock);
-    return;
-  }
+  ASSERT(entry != NULL);
   size_t idx = bitmap_scan_and_flip(swap_bitmap, 0, 1, false);
   for(i = 0; i < SECTOR_NUM; i++){
     block_write(swap_block, idx * SECTOR_NUM + i, kaddr + (i * BLOCK_SECTOR_SIZE));
